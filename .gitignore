@@ -1,0 +1,7 @@
+#eclipse
+.cproject
+.project
+
+# binaries
+*.bin
+*.o
