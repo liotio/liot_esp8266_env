@@ -9,14 +9,21 @@
 
 uint8 I2C_await_ack()
 {
-    uint8 ack;
+    uint8 ack, sck;
     uint32 timeout;
 
     // read ack value
-    I2C_SCK_HIGH;
+
+    // sck in should behave same as sck high (external pull-up)
+    // but sck in can be used for clock stretching
+    I2C_SCK_IN;
     I2C_SDA_IN;
     I2C_DELAY;
 
+    // wait while slave pulls low clock line (clock streching)
+    while (I2C_SCK_READ == 0) {
+        I2C_DELAY;
+    }
 
     timeout = I2C_TIMEOUT;
     while (timeout) {

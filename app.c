@@ -99,7 +99,7 @@ void sys_init_done_cb() {
     // state = 0;
 
     uint16 data;
-    data = BNO055_read_reg(BNO055_ADDR_HIGH, BNO055_REG_GYR_ID);
+    data = BNO055_read_reg(BNO055_ADDR_HIGH, BNO055_REG_CHIP_ID);
     if (data == (uint16) -1) {
         os_printf("Error\n");
     } else {
