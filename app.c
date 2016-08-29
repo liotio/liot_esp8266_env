@@ -131,7 +131,7 @@ void trigger(void *arg)
     */
 }
 
-void ICACHE_FLASH_ATTR sys_init_done_cb() {
+void sys_init_done_cb() {
     os_printf("SDK version:%s\n", system_get_sdk_version());
     wifi_set_opmode(NULL_MODE);
 

@@ -1,6 +1,6 @@
 #include "driver/tca6416a.h"
 
-uint16 ICACHE_FLASH_ATTR TCA6416A_init()
+uint16 TCA6416A_init()
 {
     TCA6416A_state_output[TCA6416A_P0] = 0xFF; // default value 1111 1111
     TCA6416A_state_output[TCA6416A_P1] = 0xFF; // default value 1111 1111
@@ -10,7 +10,7 @@ uint16 ICACHE_FLASH_ATTR TCA6416A_init()
     TCA6416A_state_config[TCA6416A_P1] = 0xFF; // default value 1111 1111
 }
 
-uint8 ICACHE_FLASH_ATTR TCA6416A_update_outputs(
+uint8 TCA6416A_update_outputs(
         uint8 address)
 {
     os_delay_us(20);
@@ -70,7 +70,7 @@ uint8 ICACHE_FLASH_ATTR TCA6416A_update_outputs(
     return 0;
 }
 
-uint16 ICACHE_FLASH_ATTR TCA6416A_read_reg(
+uint16 TCA6416A_read_reg(
         uint8 address,
         uint8 reg)
 {
@@ -98,7 +98,7 @@ uint16 ICACHE_FLASH_ATTR TCA6416A_read_reg(
     return data;
 }
 
-uint8 ICACHE_FLASH_ATTR TCA6416A_write_reg(
+uint8 TCA6416A_write_reg(
         uint8 address,
         uint8 reg,
         uint8 data)
@@ -125,7 +125,7 @@ uint8 ICACHE_FLASH_ATTR TCA6416A_write_reg(
     return 0;
 }
 
-uint8 ICACHE_FLASH_ATTR TCA6416A_input_get(
+uint8 TCA6416A_input_get(
         uint8 address,
         uint8 gpio)
 {
@@ -150,7 +150,7 @@ uint8 ICACHE_FLASH_ATTR TCA6416A_input_get(
     return (data >> gpio) & 1;
 }
 
-void ICACHE_FLASH_ATTR TCA6416A_set_outputs_low(
+void TCA6416A_set_outputs_low(
         uint8 address,
         uint16 pins)
 {
@@ -171,7 +171,7 @@ void ICACHE_FLASH_ATTR TCA6416A_set_outputs_low(
     TCA6416A_update_outputs(address);
 }
 
-void ICACHE_FLASH_ATTR TCA6416A_set_outputs_high(
+void TCA6416A_set_outputs_high(
         uint8 address,
         uint16 pins)
 {
