@@ -20,16 +20,51 @@
 
 #define DEBUG
 
+#define REG_READ(_r) (*(volatile uint32 *)(_r))
+#define WDEV_NOW() REG_READ(0x3ff20c00)
+uint32 tick_now2 = 0;
+
 // #include "wifi_config.h"
 
 #define TCA6416A_ADDR   TCA6416A_ADDR_LOW
 #define BNO055_ADDR     BNO055_ADDR_HIGH
+
+typedef enum {
+    FRC1_SOURCE = 0,
+    NMI_SOURCE = 1,
+} FRC1_TIMER_SOURCE_TYPE;
 
 static os_timer_t timer;
 
 static os_timer_t BNO055_timer;
 
 static uint8 state;
+
+void hw_test_timer_cb()
+{
+    if (state) {
+        state--;
+        I2C_SDA_HIGH;
+    } else {
+        state = 100;
+        I2C_SDA_LOW;
+    }
+
+    /*
+    static uint16 j = 0;
+    j++;
+
+
+    if( (WDEV_NOW() - tick_now2) >= 1000000 )
+    {
+        static u32 idx = 1;
+
+        tick_now2 = WDEV_NOW();
+        os_printf("b%u:%d\n",idx++,j);
+        j = 0;
+    }
+    */
+}
 
 /*
 #define WDEV_NOW (*(volatile uint32 *)(0x3ff20c00);
@@ -216,5 +251,12 @@ void sys_init_done_cb() {
 void user_init()
 {
     UART_SetBaudrate(UART0, BIT_RATE_115200);
-    system_init_done_cb(sys_init_done_cb);
+    // system_init_done_cb(sys_init_done_cb);
+
+    I2C_gpio_init();
+    I2C_SDA_HIGH;
+
+    hw_timer_init(FRC1_SOURCE,1);
+    hw_timer_set_func(hw_test_timer_cb);
+    hw_timer_arm(100);
 }
