@@ -7,23 +7,33 @@
  *
  */
 
+void I2C_await_clk_strech()
+{
+    // wait while slave pulls low clock line (clock streching)
+    I2C_SCK_IN;
+    I2C_DELAY;
+    while (I2C_SCK_READ == 0) {
+        I2C_DELAY;
+    }
+}
+
 uint8 I2C_await_ack()
 {
     uint8 ack, sck;
     uint32 timeout;
 
+    #ifdef DEBUG
+    os_printf("\r\n");
+    #endif
+
     // read ack value
 
     // sck in should behave same as sck high (external pull-up)
     // but sck in can be used for clock stretching
-    I2C_SCK_IN;
     I2C_SDA_IN;
     I2C_DELAY;
 
-    // wait while slave pulls low clock line (clock streching)
-    while (I2C_SCK_READ == 0) {
-        I2C_DELAY;
-    }
+    I2C_await_clk_strech();
 
     timeout = I2C_TIMEOUT;
     while (timeout) {
@@ -31,9 +41,16 @@ uint8 I2C_await_ack()
         if (ack == GPIO_LOW) {
             break;
         }
+        #ifdef DEBUG
+        os_printf("Wait for I2C ack\n");
+        #endif
         I2C_DELAY;
         timeout--;
     }
+
+    #ifdef DEBUG
+    os_printf("\r\n");
+    #endif
 
     I2C_SCK_LOW;
     I2C_DELAY;
@@ -79,6 +96,12 @@ uint8 I2C_write(
     os_printf("\r\n");
     #endif
 
+    I2C_DELAY;
+
+    if (ack) {
+        I2C_stop();
+    }
+
     return ack;
 }
 
@@ -115,6 +138,7 @@ uint8 I2C_read(uint8 ack)
     // I2C_SCK_HIGH;
 
     I2C_SDA_IN;
+    I2C_await_clk_strech();
 
     for (i = 8; i > 0; i--) {
         I2C_SCK_HIGH;
@@ -209,6 +233,7 @@ void I2C_gpio_init()
 uint8 I2C_restart()
 {
     // generate start sequence
+    I2C_DELAY;
     I2C_SDA_HIGH;
     I2C_DELAY;
     I2C_SCK_HIGH;
@@ -228,7 +253,7 @@ uint8 I2C_start(
     uint8 data;
 
     // set gpio's to open drain
-    I2C_gpio_init();
+    // I2C_gpio_init();
 
     // generate start sequence
     I2C_restart();
@@ -242,6 +267,7 @@ uint8 I2C_start(
 
 void I2C_stop()
 {
+    //TODO Remove next 2?
     I2C_SDA_LOW;
     I2C_SCK_LOW;
     I2C_DELAY;

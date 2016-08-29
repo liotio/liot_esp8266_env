@@ -40,9 +40,9 @@
 #define I2C_SCK_LOW     GPIO_OUTPUT_SET(I2C_SCK_PIN, GPIO_LOW)
 #define I2C_SCK_READ    GPIO_INPUT_GET(I2C_SCK_PIN)
 
-#define I2C_DELAY       os_delay_us(10)
+#define I2C_DELAY       os_delay_us(4); system_soft_wdt_feed();
 
-#define I2C_TIMEOUT     40000
+#define I2C_TIMEOUT     25000
 
 // transmit a byte and return (n)ack
 uint8 I2C_write(
@@ -71,6 +71,8 @@ uint8 I2C_read_buf(
 
 // set gpio's to open drain
 void I2C_gpio_init();
+
+void I2C_await_clk_strech();
 
 // send start sequence
 uint8 I2C_restart();

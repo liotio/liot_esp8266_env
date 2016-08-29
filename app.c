@@ -16,14 +16,18 @@
 #include "driver/bmp280.h"
 #include "driver/bno055.h"
 #include "driver/tca6416a.h"
+#include "libs/sounds.h"
 
-// #include "libs/sounds.h"
+#define DEBUG
 
 // #include "wifi_config.h"
 
-#define TCA6416A_ADDR TCA6416A_ADDR_LOW
+#define TCA6416A_ADDR   TCA6416A_ADDR_LOW
+#define BNO055_ADDR     BNO055_ADDR_HIGH
 
 static os_timer_t timer;
+
+static os_timer_t BNO055_timer;
 
 static uint8 state;
 
@@ -72,7 +76,62 @@ void toggle(void *arg)
     */
 }
 
-void sys_init_done_cb() {
+void trigger(void *arg)
+{
+    // system_soft_wdt_stop();
+    sint16 head, roll, ptch;
+    uint64 data;
+
+    data = BNO055_read_reg_48(BNO055_ADDR, BNO055_REG_EUL_HEAD_L);
+    ptch = (sint16) (data & 0xFFFF) / 16;
+    data = data >> 16;
+    roll = (sint16) (data & 0xFFFF) / 16;
+    data = data >> 16;
+    head = (sint16) (data & 0xFFFF) / 16;
+    // system_soft_wdt_restart();
+
+    os_printf("\nROLL:  %d\n", roll);
+    os_printf("PITCH: %d\n", ptch);
+
+    if ((ptch < -45 && ptch >= -180)
+            || (ptch > 45 && ptch <= 180)
+            || (roll < -45 && roll >= -180)
+            || (roll > 45 && roll <= 180)) {
+
+        os_delay_us(500);
+        TCA6416A_set_outputs_low(TCA6416A_ADDR, TCA6416A_P0_4);
+        os_delay_us(500);
+
+        play_sound( 400, 200, 0.06);
+
+        os_delay_us(500);
+        TCA6416A_set_outputs_high(TCA6416A_ADDR, TCA6416A_P0_4);
+    }
+
+    /*
+    data: 531028
+    dig_T!: 27981
+    dig_T2: 26967
+    dig_T3: -1000
+    2671
+     */
+
+    // os_printf("%u\n", BMP280_read_reg(BMP280_ADDR_LOW, BMP280_REG_RESET));
+
+    /*
+    if (state) {
+        state = 0;
+        I2C_SCK_LOW;
+        // TCA6416A_write_reg(TCA6416A_ADDR, TCA6416A_REG_OUTPUT_0, ~(0));
+    } else {
+        state = 1;
+        I2C_SCK_HIGH;
+        // TCA6416A_write_reg(TCA6416A_ADDR, TCA6416A_REG_OUTPUT_0, ~(1<<5));
+    }
+    */
+}
+
+void ICACHE_FLASH_ATTR sys_init_done_cb() {
     os_printf("SDK version:%s\n", system_get_sdk_version());
     wifi_set_opmode(NULL_MODE);
 
@@ -82,6 +141,13 @@ void sys_init_done_cb() {
     I2C_gpio_init();
     // LED on SDA off
     I2C_SDA_HIGH;
+
+    os_printf("...\n");
+
+    if (BNO055_init(BNO055_ADDR_HIGH)) {
+        os_printf("\n--- BNO055 init failed ---\n");
+    }
+    os_delay_us(100);
 
 
     // PIN_FUNC_SELECT(I2C_SDA_MUX, I2C_SDA_FUNC);
@@ -106,8 +172,11 @@ void sys_init_done_cb() {
         os_printf("Chip ID: %u\n", data);
     }
 
-    TCA6416A_write_reg(TCA6416A_ADDR, TCA6416A_REG_CONF_0, ~(1<<4 | 1<<5 | 1<<6));
-    TCA6416A_write_reg(TCA6416A_ADDR, TCA6416A_REG_OUTPUT_0, ~(1<<4 | 1<<5 | 1<<6));
+    // os_delay_us(100);
+
+    TCA6416A_init();
+    // TCA6416A_set_outputs_low(TCA6416A_ADDR_LOW, TCA6416A_P0_4 | TCA6416A_P0_5 | TCA6416A_P0_6);
+    TCA6416A_set_outputs_low(TCA6416A_ADDR_LOW, TCA6416A_P0_5);
 
     /*
     hw_timer_init(FRC1_SOURCE,1);
@@ -115,11 +184,13 @@ void sys_init_done_cb() {
     hw_timer_arm(100);
     */
 
+    /*
     play_sound( 400, 200, 1.0);
     os_delay_us(200000);
     play_sound( 400, 200, 1.0);
     os_delay_us(200000);
     play_sound( 400, 200, 1.0);
+    */
 
     /*
     play_sound( 200, 2000, 1.0);
@@ -136,10 +207,10 @@ void sys_init_done_cb() {
     play_sound(9000, 2000, 1.0);
     */
 
-    TCA6416A_write_reg(TCA6416A_ADDR, TCA6416A_REG_OUTPUT_0, ~(1<<5));
+    // TCA6416A_set_outputs_high(TCA6416A_ADDR_LOW, TCA6416A_P0_4 | TCA6416A_P0_6);
 
-    // os_timer_setfn(&timer, (os_timer_func_t *) toggle, NULL);
-    // os_timer_arm(&timer, 1000, 1);
+    os_timer_setfn(&BNO055_timer, (os_timer_func_t *) trigger, NULL);
+    os_timer_arm(&BNO055_timer, 250, 1);
 }
 
 void user_init()

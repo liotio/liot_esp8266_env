@@ -3,5 +3,5 @@
 .project
 
 # binaries
-*.bin
-*.o
+build
+firmware

@@ -10,7 +10,35 @@
 #define BNO055_REG_GYR_ID       0x01
 #define BNO055_REG_MAG_ID       0x02
 #define BNO055_REG_ACC_ID       0x03
-#define BNO055_REG_UNIQUE_ID    0x03
+
+#define BNO055_REG_PAGE_ID      0x07
+
+#define BNO055_REG_SELFTEST_RES 0x36
+#define BNO055_REG_SYS_CLK_STAT 0x38
+#define BNO055_REG_SYS_STAT     0x39
+#define BNO055_REG_SYS_ERR      0x3A
+#define BNO055_REG_UNIT_SEL     0x3B
+
+#define BNO055_REG_TEMP         0x34
+
+#define BNO055_REG_GYR_DAT_X_L  0x14
+#define BNO055_REG_GYR_DAT_X_M  0x15
+#define BNO055_REG_GYR_DAT_Y_L  0x16
+#define BNO055_REG_GYR_DAT_Y_M  0x17
+#define BNO055_REG_GYR_DAT_Z_L  0x18
+#define BNO055_REG_GYR_DAT_Z_M  0x19
+
+#define BNO055_REG_EUL_HEAD_L   0x1A
+#define BNO055_REG_EUL_HEAD_M   0x1B
+#define BNO055_REG_EUL_ROLL_L   0x1C
+#define BNO055_REG_EUL_ROLL_M   0x1D
+#define BNO055_REG_EUL_PITCH_L  0x1E
+#define BNO055_REG_EUL_PITCH_M  0x1F
+
+#define BNO055_REG_UNIT_SEL     0x3B
+#define BNO055_REG_OPR_MODE     0x3D
+#define BNO055_REG_PWR_MODE     0x3E
+#define BNO055_REG_SYS_TRIGGER  0x3F
 
 // power modes
 #define BNO055_MODE_PWR_NORMAL  0x00  // all sensors always on
@@ -34,36 +62,17 @@
 #define BNO055_MODE_OP_NDOF_OFF 0x0B
 #define BNO055_MODE_OP_NDOF     0x0C
 
+#define BNO055_UNIT_ACC_MPS2    0x00
+#define BNO055_UNIT_ACC_MG      0x01
+#define BNO055_UNIT_AN_RT_DPS   0x00
+#define BNO055_UNIT_AN_RT_RPS   0x02
+#define BNO055_UNIT_EUL_AN_DEG  0x00
+#define BNO055_UNIT_EUL_AN_RAD  0x04
+#define BNO055_UNIT_TEMP_C      0x00
+#define BNO055_UNIT_TEMP_F      0x10
+#define BNO055_UNIT_DAT_FMT_WIN 0x00
+#define BNO055_UNIT_DAT_FMT_AND 0x80
 
-
-/*
-#define BNO055_REG_ID           0xD0
-#define BNO055_REG_RESET        0xE0
-#define BNO055_REG_STATUS       0xF3
-#define BNO055_REG_CTRL_MEAS    0xF4
-#define BNO055_REG_CONFIG       0xF5
-
-#define BNO055_REG_PRESS_MSB    0xF7
-#define BNO055_REG_PRESS_LSB    0xF8
-#define BNO055_REG_PRESS_XLSB   0xF9
-
-#define BNO055_REG_TEMP_MSB     0xFA
-#define BNO055_REG_TEMP_LSB     0xFB
-#define BNO055_REG_TEMP_XLSB    0xFC
-
-#define BNO055_REG_DIG_T1_LSB   0x88
-#define BNO055_REG_DIG_T2_LSB   0x8A
-#define BNO055_REG_DIG_T3_LSB   0x8C
-#define BNO055_REG_DIG_P1_LSB   0x8E
-#define BNO055_REG_DIG_P2_LSB   0x90
-#define BNO055_REG_DIG_P3_LSB   0x92
-#define BNO055_REG_DIG_P4_LSB   0x94
-#define BNO055_REG_DIG_P5_LSB   0x96
-#define BNO055_REG_DIG_P6_LSB   0x98
-#define BNO055_REG_DIG_P7_LSB   0x9A
-#define BNO055_REG_DIG_P8_LSB   0x9C
-#define BNO055_REG_DIG_P9_LSB   0x9E
-*/
 
 // ...
 uint16 BNO055_read_reg(
@@ -71,12 +80,11 @@ uint16 BNO055_read_reg(
         uint8 reg);
 
 // ...
-uint32 BNO055_read_reg_20(
+uint32 BNO055_read_reg_16(
         uint8 address,
         uint8 reg);
 
-// ...
-uint32 BNO055_read_dig(
+uint64 BNO055_read_reg_48(
         uint8 address,
         uint8 reg);
 
