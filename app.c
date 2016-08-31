@@ -1,3 +1,5 @@
+#include <driver/bme280.h>
+
 #include "eagle_soc.h"
 #include "c_types.h"
 
@@ -10,10 +12,8 @@
 
 #include "driver/uart.h"
 #include "driver/soft_i2c.h"
-// #include "driver/bh1750.h"
-// #include "driver/sht1x.h"
 
-#include "driver/bmp280.h"
+#include "driver/bme280.h"
 #include "driver/bno055.h"
 #include "driver/cc1101.h"
 #include "driver/tca6416a.h"

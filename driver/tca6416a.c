@@ -2,6 +2,13 @@
 
 uint16 TCA6416A_init()
 {
+    PIN_FUNC_SELECT(PERIPHS_IO_MUX_GPIO0_U, FUNC_GPIO0);
+    GPIO_OUTPUT_SET(0, 1);
+    os_delay_us(10);
+    GPIO_OUTPUT_SET(0, 0);
+    os_delay_us(10);
+    GPIO_OUTPUT_SET(0, 1);
+
     TCA6416A_state_output[TCA6416A_P0] = 0xFF; // default value 1111 1111
     TCA6416A_state_output[TCA6416A_P1] = 0xFF; // default value 1111 1111
     TCA6416A_state_polinv[TCA6416A_P0] = 0x00; // default value 0000 0000
