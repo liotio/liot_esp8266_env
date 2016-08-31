@@ -76,7 +76,6 @@ uint8 FREQ0[] = {0x7A,0x85,0x91,0x9D,0xA9,0xF8,0x03,0x0F,0x1B,0x27,0x33};
 //=============================================================================
 // 400 KBit/s, 869.525 MHz, MSK, Quartz: 26 MHz, Addresse=255
 //=============================================================================
-
 char conf[] = {
         0x06, // IOCFG2   GDO2 Signal Konfigurierung Table 34 Packet,CRC,FIFO
         0x2E, // IOCFG1   GDO1 Signal Konfigurierung Table 34 Tristate
@@ -119,25 +118,26 @@ char conf[] = {
         0x1F  // FSCAL0
 };
 
-void spiInitTrx(void)
+void spiInitTrx()
 {
     PIN_FUNC_SELECT(HSPI_MISO_MUX, FUNC_GPIO_HSPI_MISO);  // MISO as GPIO
+    PIN_FUNC_SELECT(HSPI_CS_MUX, FUNC_GPIO_HSPI_CS);
     HSPI_MISO_GPIO_IN;                                    // MISO as Input from GDO1
     HSPI_CS_GPIO_LOW;
 
     while (HSPI_MISO_GPIO_READ) { ; }                     // Wait until CC1101 is ready
 
     PIN_FUNC_SELECT(HSPI_MISO_MUX, FUNC_HSPI);            // MOSI as HSPI port again
+    PIN_FUNC_SELECT(HSPI_CS_MUX, FUNC_HSPI);
 }
 
 void spiWriteReg(unsigned char addr, unsigned char value)
 {
     spiInitTrx();
 
-    HSPI_tx8(addr);
-    HSPI_tx8(value);
+    HSPI_transaction(0,0,8,addr,8,value,0,0);
 
-    HSPI_CS_GPIO_HIGH;
+    // HSPI_CS_GPIO_HIGH;
 }
 
 unsigned char spiReadReg(unsigned char addr)
@@ -146,10 +146,11 @@ unsigned char spiReadReg(unsigned char addr)
     spiInitTrx();               // Init SPI CS = 0 warten bis bereit
 
     // TODO Maybe use HSPI_trx8(...) instead
-    HSPI_tx8(addr | CC1101_READ_SINGLE); // Kommando schreiben
-    x = HSPI_rx8();             // Wert lesen
+    x = HSPI_transaction(0,0,8,addr | CC1101_READ_SINGLE,0,0,8,0);
+    // HSPI_trx8(addr | CC1101_READ_SINGLE); // Kommando schreiben
+    // x = HSPI_rx8();             // Wert lesen
 
-    HSPI_CS_GPIO_HIGH;
+    // HSPI_CS_GPIO_HIGH;
 
     return x;
 }
@@ -158,9 +159,10 @@ unsigned char spiReadReg(unsigned char addr)
 void spiStrobe(unsigned char strobe)
 {
     spiInitTrx();               // Init SPI CS = 0 warten bis bereit
-    HSPI_tx8(strobe);
+    HSPI_transaction(0,0,8,strobe,0,0,0,0);
+    // HSPI_tx8(strobe);
 
-    HSPI_CS_GPIO_HIGH;
+    // HSPI_CS_GPIO_HIGH;
 }
 
 void spiWriteBurstReg(unsigned char addr, char *buffer, unsigned char count)
@@ -168,13 +170,14 @@ void spiWriteBurstReg(unsigned char addr, char *buffer, unsigned char count)
     unsigned char i;
     spiInitTrx();               // Init SPI CS = 0 warten bis bereit
 
-    HSPI_tx8(addr | CC1101_WRITE_BURST);
+    // HSPI_tx8(addr | CC1101_WRITE_BURST);
 
     for (i = 0; i < count; i++) {
-        HSPI_tx8(buffer[i]);
+        // HSPI_tx8(buffer[i]);
+        HSPI_transaction(0,0,8,((addr+i) | CC1101_WRITE_SINGLE),8,buffer[i],0,0);
     }
 
-    HSPI_CS_GPIO_HIGH;
+    // HSPI_CS_GPIO_HIGH;
 }
 
 void spiReadBurstReg(unsigned char addr, char *buffer, unsigned char count)
@@ -182,13 +185,14 @@ void spiReadBurstReg(unsigned char addr, char *buffer, unsigned char count)
     unsigned char i;
     spiInitTrx();               // Init SPI CS = 0 warten bis bereit
 
-    HSPI_tx8(addr | CC1101_READ_BURST);
+    // HSPI_tx8(addr | CC1101_READ_BURST);
 
     for (i = 0; i < count; i++) {
-        buffer[i] = HSPI_rx8();
+        // buffer[i] = HSPI_rx8();
+        buffer[i] = HSPI_transaction(0,0,8,((addr+i) | CC1101_READ_SINGLE),0,0,8,0);
     }
 
-    HSPI_CS_GPIO_HIGH;
+    // HSPI_CS_GPIO_HIGH;
 }
 
 unsigned char spiReadStatus(unsigned char addr)
@@ -206,14 +210,16 @@ unsigned char spiReadStatus(unsigned char addr)
 void CC1101_reset()
 {
     spiInitTrx();               // Init SPI CS = 0 warten bis bereit
-    HSPI_tx8(CC1101_SRES);       // Strobe Kommando Reset
+    // HSPI_tx8(CC1101_SRES);       // Strobe Kommando Reset
+    HSPI_transaction(0,0,8,CC1101_SRES,0,0,0,0);
     spiInitTrx();               // Init SPI CS = 0 warten bis bereit
 
-    HSPI_CS_GPIO_HIGH;
+    // HSPI_CS_GPIO_HIGH;
 }
 
 void powerUpReset()
 {
+    PIN_FUNC_SELECT(HSPI_CS_MUX, FUNC_GPIO_HSPI_CS);
     HSPI_CS_GPIO_HIGH;
     os_delay_us(1);
 
@@ -222,6 +228,8 @@ void powerUpReset()
 
     HSPI_CS_GPIO_HIGH;
     os_delay_us(45);
+
+    PIN_FUNC_SELECT(HSPI_CS_MUX, FUNC_HSPI);
 
     CC1101_reset();
 }
@@ -249,8 +257,8 @@ void CC1101_init()
 {
     CC1101_init_spi();
     //unsigned int i_enable = 1;
-    memset((void *) TxCC1101.data, 0, MAX_DATA_LENGTH_CC1101);
-    memset((void *) RxCC1101.data, 0, MAX_DATA_LENGTH_CC1101);
+    memset((void *) TxCC1101.data, 0, CC1101_MAX_DATA_LENGTH);
+    memset((void *) RxCC1101.data, 0, CC1101_MAX_DATA_LENGTH);
     // Power up Reset CC1101
     powerUpReset();
     // Konfigurationsregister schreiben
@@ -271,73 +279,47 @@ void CC1101_init()
 void CC1101_init_spi()
 {
     // Init all HSPI Pins
-    HSPI_init_gpio(HSPI_CLK_USE_DIV);
+    HSPI_init();
+    HSPI_set_clock(4, 2);
 
     // Reset CS to GPIO in order to set it manually
-    PIN_FUNC_SELECT(HSPI_CS_MUX, FUNC_GPIO_HSPI_CS);
-    HSPI_CS_GPIO_HIGH;
+    // PIN_FUNC_SELECT(HSPI_CS_MUX, FUNC_GPIO_HSPI_CS);
+    // HSPI_CS_GPIO_HIGH;
 }
 
 void CC1101_init_interrupt()
 {
-    /*
-    //===== PC4 - CC1101_GDO0   Input
-    //===== PC5 - CC1101_GDO2   Input
+    PIN_FUNC_SELECT(PERIPHS_IO_MUX_GPIO5_U, FUNC_GPIO5); // Pin GPIO 5 as GPIO
+    PIN_PULLUP_DIS(PERIPHS_IO_MUX_GPIO5_U);              // Disable internal pull up
+    GPIO_DIS_OUTPUT(5);                                  // GPIO 5 as Input
 
-    // Clocksystem einschalten
-    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);
+    ETS_GPIO_INTR_DISABLE();                             // don't get disturbed by interrupt
 
-    // GPIO Strukt anlegen
-    GPIO_InitTypeDef GPIO_InitStructure;
-    GPIO_StructInit(&GPIO_InitStructure);
+    ETS_GPIO_INTR_ATTACH(gpio_intr_handler, &var_intr);
 
-    // GPIO Strukt initalisieren
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_4 | GPIO_Pin_5;  // PC4-CC1101_GDO0 und PC5-CC1101_GDO2
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;            //  GPIO Input Mode
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;      //  High speed
-    GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;          //  PushPull
-    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_DOWN;          //  PullDown
+    //    void gpio_register_set(uint32 reg_id, uint32 value);
+    //
+    // From include file
+    //   Set the specified GPIO register to the specified value.
+    //   This is a very general and powerful interface that is not
+    //   expected to be used during normal operation.  It is intended
+    //   mainly for debug, or for unusual requirements.
+    //
+    // All people repeat this mantra but I don't know what it means
+    //
+    gpio_register_set(GPIO_PIN_ADDR(5),
+            GPIO_PIN_INT_TYPE_SET(GPIO_PIN_INTR_DISABLE) |
+            GPIO_PIN_PAD_DRIVER_SET(GPIO_PAD_DRIVER_DISABLE) |
+            GPIO_PIN_SOURCE_SET(GPIO_AS_PIN_SOURCE));
 
-    // Register schreiben
-    GPIO_Init(GPIOC, &GPIO_InitStructure);
+    GPIO_REG_WRITE(GPIO_STATUS_W1TC_ADDRESS, BIT(5));
 
-    //==== PC5 - CC1101_GDO2 als Interrupt Quelle anmelden
+    // enable interrupt for his GPIO
+    //     GPIO_PIN_INTR_... defined in gpio.h
 
-    // EXTI Struct anlegen
-    EXTI_InitTypeDef EXTI_InitStructure;
+    gpio_pin_intr_state_set(GPIO_ID_PIN(5), GPIO_PIN_INTR_NEGEDGE);
 
-    // NVIC Struct anlegen
-    NVIC_InitTypeDef NVIC_InitStructure;
-
-    // Clocksystem einschalten
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
-
-    // CC1101 GDO2 IRQ
-    GPIO_StructInit(&GPIO_InitStructure);
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_5;
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
-    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
-    GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-    GPIO_Init(GPIOC, &GPIO_InitStructure);
-
-    // Interrupt Konfiguration
-    SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOC, EXTI_PinSource5);
-
-    // EXT_INT5 Line Konfiguration
-    EXTI_InitStructure.EXTI_Line = EXTI_Line5;
-    EXTI_InitStructure.EXTI_LineCmd = ENABLE;
-    EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;
-    EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Falling;
-    EXTI_Init(&EXTI_InitStructure);
-
-    // NVIC Konfiguration
-    NVIC_InitStructure.NVIC_IRQChannel = EXTI9_5_IRQn;
-    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x0F;
-    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x0F;
-    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
-    NVIC_Init(&NVIC_InitStructure);
-    */
+    ETS_GPIO_INTR_ENABLE();
 }
 
 void CC1101_init_idle()
@@ -361,7 +343,7 @@ void CC1101_init_powerdown()
     os_delay_us(120);
 }
 
-void ISR_IRQ5_CC1101()
+void CC1101_isr()
 {
     char crc;
     crc = receive_Packet();
@@ -372,8 +354,18 @@ void ISR_IRQ5_CC1101()
     }
 
     spiStrobe(CC1101_SIDLE); // Switch to IDLE
-    spiStrobe(CC1101_SFRX); // Flush the RX FIFO
-    spiStrobe(CC1101_SRX);  // Rx Mode
+    spiStrobe(CC1101_SFRX);  // Flush the RX FIFO
+    spiStrobe(CC1101_SRX);   // Rx Mode
+
+
+
+    uint32 gpio_status;
+
+    gpio_status = GPIO_REG_READ(GPIO_STATUS_ADDRESS);
+
+    //clear interrupt status
+
+    GPIO_REG_WRITE(GPIO_STATUS_W1TC_ADDRESS, gpio_status);
 //    EXTI_ClearITPendingBit(EXTI_Line5);
 //    EXTI_ClearFlag(EXTI_Line5);
 }
@@ -417,8 +409,8 @@ void send_Packet(unsigned char ziel,unsigned char quelle,  char *data, unsigned 
 
     unsigned char i;
 
-    if (length > MAX_DATA_LENGTH_CC1101-1 ) { // max 59 Byte
-        length = MAX_DATA_LENGTH_CC1101-1 ;   // zu große Packete werden auf 59 Byte begrenzt
+    if (length > CC1101_MAX_DATA_LENGTH-1 ) { // max 59 Byte
+        length = CC1101_MAX_DATA_LENGTH-1 ;   // zu große Packete werden auf 59 Byte begrenzt
     }
 
     // Packetlänge = 1 Byte (Zieladdresse) + data length

@@ -9,6 +9,8 @@
 
 #include "driver/hspi.h"
 
+#include "user/interrupt.h"
+
 //=============================================================================
 // zentrale Daten für den CC1101 Funkchip
 //=============================================================================
@@ -37,7 +39,7 @@ extern unsigned char paTableIndex;  //PA Tabelle
 #define NOBYTE                    0x00  // No command, for reading.
 #define PACKET_LENGTH             255   // Packet length = 62 Bytes.
 #define HEADER_SIZE               2     //size of header
-#define MAX_DATA_LENGTH_CC1101    (PACKET_LENGTH - HEADER_SIZE)
+#define CC1101_MAX_DATA_LENGTH    (PACKET_LENGTH - HEADER_SIZE)
 //=============================================================================
 #define PATABLE                   17    // Current PATABLE Index
 #define LOW_POWER                 1     // Sendeleistung auf -15 dBm setzen
@@ -178,6 +180,7 @@ extern unsigned char paTableIndex;  //PA Tabelle
 //=============================================================================
 // Definitions to support burst/single access
 //=============================================================================
+#define CC1101_WRITE_SINGLE (0x00)  // Offset for burst write.
 #define CC1101_WRITE_BURST  (0x40)  // Offset for burst write.
 #define CC1101_READ_SINGLE  (0x80)  // Offset for read single byte.
 #define CC1101_READ_BURST   (0xC0)  // Offset for read burst.
@@ -221,8 +224,11 @@ extern volatile  CC1101_Tx TxCC1101;    //
 
 
 //=============================================================================
+void spiInitTrx();
 void spiStrobe(unsigned char strobe);
 // startet SPI auf dem CC1101
+
+void powerUpReset();
 
 //=============================================================================
 void CC1101_init();
@@ -245,7 +251,7 @@ void CC1101_init_interrupt();
 // Initialisierung des CC1101 Empfangsinterrupts
 
 //=============================================================================
-void ISR_IRQ5_CC1101(void);
+void CC1101_isr();
 // ISR des CC1101 Empfangsinterrupts
 
 //=============================================================================

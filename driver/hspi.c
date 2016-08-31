@@ -140,7 +140,7 @@ uint32 HSPI_transaction(
     }
 
     if(dout_bits) {
-            SET_PERI_REG_MASK(SPI_USER(HSPI), SPI_USR_MOSI); //enable MOSI function in SPI module
+        SET_PERI_REG_MASK(SPI_USER(HSPI), SPI_USR_MOSI); //enable MOSI function in SPI module
         //copy data to W0
         if (READ_PERI_REG(SPI_USER(HSPI)) & SPI_WR_BYTE_ORDER) {
             WRITE_PERI_REG(SPI_W0(HSPI), dout_data<<(32-dout_bits));
