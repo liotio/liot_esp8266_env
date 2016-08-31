@@ -12,8 +12,8 @@
 #define TCA6416A_REG_OUTPUT_1     0x03
 #define TCA6416A_REG_POL_INV_0    0x04
 #define TCA6416A_REG_POL_INV_1    0x05
-#define TCA6416A_REG_CONFIG_0       0x06
-#define TCA6416A_REG_CONFIG_1       0x07
+#define TCA6416A_REG_CONFIG_0     0x06
+#define TCA6416A_REG_CONFIG_1     0x07
 
 #define TCA6416A_P0               0x00
 #define TCA6416A_P1               0x01

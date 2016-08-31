@@ -5,4 +5,4 @@ ESPPORT       = /dev/ttyUSB0
 
 EXTRA_SRCS     = $(ROOT)/sdk/driver_lib
 
-include $(ESP_OPEN_SDK)/common.mk
+include $(ESP_EASY_SDK)/common.mk
