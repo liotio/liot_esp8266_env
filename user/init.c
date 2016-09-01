@@ -1,14 +1,4 @@
-#include "osapi.h"
-#include "user_interface.h"
-
-#include "wifi_config.h"
-
-#include "driver/soft_i2c.h"
-#include "driver/tca6416a.h"
-#include "driver/cc1101.h"
-
-#include "user/sound.h"
-#include "user/task.h"
+#include "user/init.h"
 
 void SOFTAP_init_user()
 {
@@ -37,10 +27,9 @@ void I2C_init_user()
     os_delay_us(100);
 }
 
-void TCA6416A_init_user(
-        uint8 address)
+void TCA6416A_init_user()
 {
-    TCA6416A_init(address);
+    TCA6416A_init(TCA6416A_ADDR);
 
     // turn on green and orange LED (P0.5 and P0.6) and Buzzer (P0.4)
     TCA6416A_set_outputs_low(TCA6416A_P0_4 | TCA6416A_P0_5 | TCA6416A_P0_6);
@@ -50,22 +39,14 @@ void TCA6416A_init_user(
     TCA6416A_set_outputs_high(TCA6416A_P0_4 | TCA6416A_P0_6);
 }
 
-void BME280_init_user(
-        uint8 address)
+void BME280_init_user()
 {
-    if (BME280_init(address)) {
-        os_printf("\nBME280 init failed");
-    }
-    os_delay_us(100);
+    BME280_init(BME280_ADDR);
 }
 
-void BNO055_init_user(
-        uint8 address)
+void BNO055_init_user()
 {
-    if (BNO055_init(address)) {
-        os_printf("\nBNO055 init failed");
-    }
-    os_delay_us(100);
+    BNO055_init(BNO055_ADDR);
 
     /*
     uint16 data;
@@ -114,19 +95,10 @@ void HTTPD_init_user()
 void TASK_init_user()
 {
     // I2C task
-    system_os_task(TASK_i2c, TASK_i2c_prio, TASK_i2c_queue, TASK_i2c_queue_len);
-    system_os_post(TASK_i2c_prio, 0, 0);
+    TASK_i2c_init();
 }
 
 void TIMER_init_user()
 {
-    // hw_timer_init(FRC1_SOURCE,1);
-    // hw_timer_set_func(hw_test_timer_cb);
-    // hw_timer_arm(100);
-
-    // os_timer_setfn(&BNO055_timer, (os_timer_func_t *) trigger, NULL);
-    // os_timer_arm(&BNO055_timer, 250, 1);
-
-    // os_timer_setfn(&timer, (os_timer_func_t *) toggle, NULL);
-    // os_timer_arm(&timer, 500, 1);
+    TIMER_task_i2c_init();
 }

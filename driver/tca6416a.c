@@ -17,6 +17,8 @@ uint16 TCA6416A_init(
 
     _address = address;
 
+    os_printf("\nInit TCA6416A");
+
     TCA6416A_reset();
 
     TCA6416A_state_output[TCA6416A_P0] = 0xFF; // default value 1111 1111
@@ -146,5 +148,4 @@ static void TCA6416A_update_outputs()
     }
 
     I2C_stop();
-    os_printf("Updating TCA6416A successful\n");
 }

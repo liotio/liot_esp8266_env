@@ -10,6 +10,8 @@
 
 #include "driver/tca6416a.h"
 
+#include "user/task.h"
+
 #define INTERRUPT_TYPE            GPIO_PIN_INTR_ANYEDGE
 
 #define INTERRUPT_BNO055          TCA6416A_P0_0

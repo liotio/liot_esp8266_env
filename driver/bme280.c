@@ -33,9 +33,9 @@ typedef sint64 BME280_S64_t;
 
 void BME280_init(uint8 address)
 {
-    uint16 d_H5;
-
     _address = address;
+
+    os_printf("\nInit BME280");
 
     // TODO LSB need other read method
     dig_T1 = (uint16) I2C_read_multiple_lsb(_address, BME280_REG_DIG_T1_LSB, 16);
@@ -57,6 +57,7 @@ void BME280_init(uint8 address)
     // dig_H5 is a special case, see below
     dig_H6 = (sint8)  I2C_read_multiple_msb(_address, BME280_REG_DIG_H6_MSB,  8);
 
+    uint16 d_H5;
     d_H5 = (uint16) I2C_read_multiple_lsb(_address, BME280_REG_DIG_H5_LSB, 12);
     dig_H5 = (sint16) ((d_H5 << 4) & 0xFF0) | ((d_H5 >> 8) & 0xF);
 }

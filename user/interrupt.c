@@ -39,6 +39,7 @@ void INTERRUPT_handler(int * var)
 
         if (input_diff & INTERRUPT_BNO055) {
             os_printf("\nInterrupt from BNO055");
+            TASK_i2c_restart();
         }
 
         if (input_diff & INTERRUPT_CC1101_GDO0) {

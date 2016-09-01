@@ -109,7 +109,7 @@ uint8 I2C_await_ack()
             break;
         }
         #ifdef DEBUG
-        os_printf("Wait for I2C ack\n");
+        os_printf("\nWait for I2C ack");
         #endif
         I2C_DELAY;
         timeout--;

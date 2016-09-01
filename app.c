@@ -40,19 +40,13 @@ void user_start()
     SOFTAP_init_user();
 
     I2C_init_user();
-    TCA6416A_init_user(TCA6416A_ADDR);
-    // BME280_init_user(BME280_ADDR);
-    BNO055_init_user(BNO055_ADDR);
+    TCA6416A_init_user();
+    // BME280_init_user();
+    BNO055_init_user();
     // CC1101_init_user();
 
     TASK_init_user();
     // INTERRUPT_init_user();
-    // TIMER_init_use();
+    TIMER_init_user();
     HTTPD_init_user();
-
-    /*
-    BME280_get_temperature_int32();
-    BME280_get_humidity_int32();
-    BME280_get_pressure_int64();
-    */
 }

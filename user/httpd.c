@@ -20,7 +20,7 @@ void HTTPD_init()
     httpdTcp.local_port = 80;
     httpdConn.proto.tcp = &httpdTcp;
 
-    os_printf("Httpd init, conn=%p\n", &httpdConn);
+    os_printf("\nInit HTTPD, conn=%p\n", &httpdConn);
     espconn_regist_connectcb(&httpdConn, HTTPD_on_connection);
     espconn_accept(&httpdConn);
 }

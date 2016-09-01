@@ -73,7 +73,7 @@
 #define BNO055_UNIT_DAT_FMT_WIN 0x00
 #define BNO055_UNIT_DAT_FMT_AND 0x80
 
-uint8 BNO055_init(
+void BNO055_init(
         uint8 address);
 
 // ...
@@ -89,11 +89,5 @@ uint32 BNO055_read_reg_16(
 uint64 BNO055_read_reg_48(
         uint8 address,
         uint8 reg);
-
-// ...
-uint8 BNO055_write_reg(
-        uint8 address,
-        uint8 reg,
-        uint8 data);
 
 #endif
