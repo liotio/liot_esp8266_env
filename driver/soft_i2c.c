@@ -25,6 +25,55 @@ void I2C_init()
     ETS_GPIO_INTR_ENABLE();
 }
 
+uint8 I2C_restart()
+{
+    // generate start sequence
+    I2C_DELAY;
+    I2C_SDA_HIGH;
+    I2C_DELAY;
+    I2C_SCK_HIGH;
+    I2C_DELAY;
+
+    I2C_SDA_LOW;
+    I2C_DELAY;
+
+    I2C_SCK_LOW;
+    I2C_DELAY;
+}
+
+uint8 I2C_start(
+    uint8 address,
+    uint8 readwrite)
+{
+    uint8 data;
+
+    // set gpio's to open drain
+    // I2C_gpio_init();
+
+    // generate start sequence
+    I2C_restart();
+
+    // shift address one position to left, take
+    // readwrite bit to least significant bit and
+    // write this data out to the slave device(s)
+    data = (address << 1) | (readwrite & 1);
+    return I2C_write(data);
+}
+
+void I2C_stop()
+{
+    //TODO Remove next 2?
+    I2C_SDA_LOW;
+    I2C_SCK_LOW;
+    I2C_DELAY;
+
+    I2C_SCK_HIGH;
+    I2C_DELAY;
+
+    I2C_SDA_HIGH;
+    I2C_DELAY;
+}
+
 void I2C_await_clk_strech()
 {
     // wait while slave pulls low clock line (clock streching)
@@ -123,7 +172,28 @@ uint8 I2C_write(
     return ack;
 }
 
-uint8 I2C_write_buf(
+uint8 I2C_write_single(
+        uint8 slave_addr,
+        uint8 reg_addr,
+        uint8 data)
+{
+    if (I2C_start(slave_addr, I2C_SLAVE_WRITE)) {
+        os_printf("\nCannot init writing to slave");
+        return -1;
+    }
+    if (I2C_write(reg_addr)) {
+        os_printf("\nCannot write register to slave");
+        return -1;
+    }
+    if (I2C_write(data)) {
+        os_printf("\nCannot write data to slave");
+        return -1;
+    }
+
+    return 0;
+}
+
+uint8 I2C_write_buffer(
     uint8 slave_addr,
     uint8 reg_addr,
     uint8 length,
@@ -204,7 +274,82 @@ uint8 I2C_read_nack()
     return I2C_read(I2C_SEND_NACK);
 }
 
-uint8 I2C_read_buf(
+uint8 I2C_read_single(
+        uint8 slave_addr,
+        uint8 reg_addr)
+{
+    return (uint8) I2C_read_multiple_msb(slave_addr, reg_addr, 8);
+}
+
+uint64 I2C_read_multiple_msb(
+        uint8 slave_addr,
+        uint8 reg_addr,
+        uint8 bits)
+{
+    uint64 result = 0;
+
+    if (I2C_start(slave_addr, I2C_SLAVE_WRITE)) {
+        os_printf("\nCannot init writing to slave");
+        return -1;
+    }
+    if (I2C_write(reg_addr)) {
+        os_printf("\nCannot write register to slave");
+        return -1;
+    }
+
+    if (I2C_start(slave_addr, I2C_SLAVE_READ)) {
+        os_printf("\nCannot init reading from slave");
+        return -1;
+    }
+
+    while (bits > 8) {
+        result = (result << 8) | I2C_read_ack();
+        bits -= 8;
+    }
+
+    result = (result << bits) | (I2C_read_nack() >> (8 - bits));
+
+    I2C_stop();
+
+    return result;
+}
+
+uint64 I2C_read_multiple_lsb(
+        uint8 slave_addr,
+        uint8 reg_addr,
+        uint8 bits)
+{
+    uint64 result = 0;
+    uint8 offset = 0;
+
+    if (I2C_start(slave_addr, I2C_SLAVE_WRITE)) {
+        os_printf("\nCannot init writing to slave");
+        return -1;
+    }
+    if (I2C_write(reg_addr)) {
+        os_printf("\nCannot write register to slave");
+        return -1;
+    }
+
+    if (I2C_start(slave_addr, I2C_SLAVE_READ)) {
+        os_printf("\nCannot init reading from slave");
+        return -1;
+    }
+
+    while (bits > 8) {
+        result = result | I2C_read_ack() << offset;
+        bits -= 8;
+        offset += 8;
+    }
+
+    result = result | (I2C_read_nack() << offset);
+
+    I2C_stop();
+
+    return result;
+}
+
+uint8 I2C_read_buffer(
     uint8 slave_addr,
     uint8 reg_addr,
     uint8 length,
@@ -228,53 +373,4 @@ uint8 I2C_read_buf(
 
     I2C_stop();
     return 0;
-}
-
-uint8 I2C_restart()
-{
-    // generate start sequence
-    I2C_DELAY;
-    I2C_SDA_HIGH;
-    I2C_DELAY;
-    I2C_SCK_HIGH;
-    I2C_DELAY;
-
-    I2C_SDA_LOW;
-    I2C_DELAY;
-
-    I2C_SCK_LOW;
-    I2C_DELAY;
-}
-
-uint8 I2C_start(
-    uint8 address,
-    uint8 readwrite)
-{
-    uint8 data;
-
-    // set gpio's to open drain
-    // I2C_gpio_init();
-
-    // generate start sequence
-    I2C_restart();
-
-    // shift address one position to left, take
-    // readwrite bit to least significant bit and
-    // write this data out to the slave device(s)
-    data = (address << 1) | (readwrite & 1);
-    return I2C_write(data);
-}
-
-void I2C_stop()
-{
-    //TODO Remove next 2?
-    I2C_SDA_LOW;
-    I2C_SCK_LOW;
-    I2C_DELAY;
-
-    I2C_SCK_HIGH;
-    I2C_DELAY;
-
-    I2C_SDA_HIGH;
-    I2C_DELAY;
 }

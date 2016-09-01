@@ -1,6 +1,6 @@
 #include "driver/bno055.h"
 
-uint8 _address;
+static uint8 _address;
 
 uint8 BNO055_init(
         uint8 address)

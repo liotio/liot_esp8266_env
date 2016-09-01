@@ -1,11 +1,21 @@
 #include "driver/tca6416a.h"
 
-uint8 _address;
+static uint8 TCA6416A_state_input[2];
+static uint8 TCA6416A_state_output[2];
+static uint8 TCA6416A_state_polinv[2];
+static uint8 TCA6416A_state_config[2];
 
-uint16 TCA6416A_init(uint8 address)
+static uint8 _address;
+
+static void TCA6416A_update_outputs();
+
+uint16 TCA6416A_init(
+        uint8 address)
 {
     PIN_FUNC_SELECT(PERIPHS_IO_MUX_GPIO0_U, FUNC_GPIO0);
     GPIO_OUTPUT_SET(0, 1);
+
+    _address = address;
 
     TCA6416A_reset();
 
@@ -15,6 +25,9 @@ uint16 TCA6416A_init(uint8 address)
     TCA6416A_state_polinv[TCA6416A_P1] = 0x00; // default value 0000 0000
     TCA6416A_state_config[TCA6416A_P0] = 0xFF; // default value 1111 1111
     TCA6416A_state_config[TCA6416A_P1] = 0xFF; // default value 1111 1111
+
+    // TCA6416A_state_input[TCA6416A_P0] =
+    // TCA6416A_state_input[TCA6416A_P1] =
 }
 
 void TCA6416A_reset()
@@ -25,124 +38,8 @@ void TCA6416A_reset()
     GPIO_OUTPUT_SET(0, 1);
 }
 
-uint8 TCA6416A_update_outputs(
-        uint8 address)
-{
-    os_delay_us(20);
-
-    if (I2C_start(address, I2C_SLAVE_WRITE)) {
-        os_printf("Cannot init writing to TCA6416A\n");
-        return -1;
-    }
-    if (I2C_write(TCA6416A_REG_CONFIG_0)) {
-        os_printf("Cannot write register to TCA6416A\n");
-        return -1;
-    }
-    if (I2C_write(TCA6416A_state_config[TCA6416A_P0])) {
-        os_printf("Cannot write config 0 data to TCA6416A\n");
-        return -1;
-    }
-    if (I2C_start(address, I2C_SLAVE_WRITE)) {
-        os_printf("Cannot init writing to TCA6416A\n");
-        return -1;
-    }
-    if (I2C_write(TCA6416A_REG_CONFIG_1)) {
-        os_printf("Cannot write register to TCA6416A\n");
-        return -1;
-    }
-    if (I2C_write(TCA6416A_state_config[TCA6416A_P1])) {
-        os_printf("Cannot write config 1 data to TCA6416A\n");
-        return -1;
-    }
-    if (I2C_start(address, I2C_SLAVE_WRITE)) {
-        os_printf("Cannot init writing to TCA6416A\n");
-        return -1;
-    }
-    if (I2C_write(TCA6416A_REG_OUTPUT_0)) {
-        os_printf("Cannot write register to TCA6416A\n");
-        return -1;
-    }
-    if (I2C_write(TCA6416A_state_output[TCA6416A_P0])) {
-        os_printf("Cannot write output 0 data to TCA6416A\n");
-        return -1;
-    }
-    if (I2C_start(address, I2C_SLAVE_WRITE)) {
-        os_printf("Cannot init writing to TCA6416A\n");
-        return -1;
-    }
-    if (I2C_write(TCA6416A_REG_OUTPUT_1)) {
-        os_printf("Cannot write register to TCA6416A\n");
-        return -1;
-    }
-    if (I2C_write(TCA6416A_state_output[TCA6416A_P1])) {
-        os_printf("Cannot write output 1 data to TCA6416A\n");
-        return -1;
-    }
-
-    I2C_stop();
-    os_printf("Updating TCA6416A successful\n");
-
-    return 0;
-}
-
-uint16 TCA6416A_read_reg(
-        uint8 address,
-        uint8 reg)
-{
-    uint8 data;
-
-    // write register to read from
-    if (I2C_start(address, I2C_SLAVE_WRITE)) {
-        os_printf("Cannot init writing to TCA6416A\n");
-        return -1;
-    }
-    if (I2C_write(reg)) {
-        os_printf("Cannot write to TCA6416A\n");
-        return -1;
-    }
-
-    // restart and read register data
-    if (I2C_start(address, I2C_SLAVE_READ)) {
-        os_printf("Cannot find TCA6416A\n");
-        return -1;
-    }
-
-    data = I2C_read_nack();
-    I2C_stop();
-
-    return data;
-}
-
-uint8 TCA6416A_write_reg(
-        uint8 address,
-        uint8 reg,
-        uint8 data)
-{
-    os_delay_us(20);
-
-    // write register to read from
-    if (I2C_start(address, I2C_SLAVE_WRITE)) {
-        os_printf("Cannot init writing to TCA6416A\n");
-        return -1;
-    }
-    if (I2C_write(reg)) {
-        os_printf("Cannot write register to TCA6416A\n");
-        return -1;
-    }
-    if (I2C_write(data)) {
-        os_printf("Cannot write data to TCA6416A\n");
-        return -1;
-    }
-
-    I2C_stop();
-    os_printf("Writing to TCA6416A successful\n");
-
-    return 0;
-}
-
-uint8 TCA6416A_input_get(
-        uint8 address,
-        uint8 gpio)
+uint8 TCA6416A_get_input(
+        TCA6416A_gpio gpio)
 {
     uint8 reg;
     uint16 data;
@@ -157,16 +54,34 @@ uint8 TCA6416A_input_get(
         return -1;
     }
 
-    data = TCA6416A_read_reg(address, gpio);
+    data = I2C_read_single(_address, gpio);
     if (data == -1) {
         return -1;
     }
 
-    return (data >> gpio) & 1;
+    return data & BIT(gpio);
+}
+
+uint16 TCA6416A_get_input_diff()
+{
+    uint8 input0, input1;
+    uint16 result = 0;
+
+    input0 = I2C_read_single(_address, TCA6416A_P0);
+    input1 = I2C_read_single(_address, TCA6416A_P1);
+
+    // determine difference between last and new input states
+    result |= (input0 ^ TCA6416A_state_input[TCA6416A_P0]);
+    result |= (input1 ^ TCA6416A_state_input[TCA6416A_P1]) << 8;
+
+    // update input states
+    TCA6416A_state_input[TCA6416A_P0] = input0;
+    TCA6416A_state_input[TCA6416A_P1] = input1;
+
+    return result;
 }
 
 void TCA6416A_set_outputs_low(
-        uint8 address,
         uint16 pins)
 {
     // in conf register, 1 is input, 0 is output
@@ -183,11 +98,10 @@ void TCA6416A_set_outputs_low(
     TCA6416A_state_output[TCA6416A_P0] &= ~(pins);
     TCA6416A_state_output[TCA6416A_P1] &= ~(pins >> 8);
 
-    TCA6416A_update_outputs(address);
+    TCA6416A_update_outputs();
 }
 
 void TCA6416A_set_outputs_high(
-        uint8 address,
         uint16 pins)
 {
     // in conf register, 1 is input, 0 is output
@@ -204,5 +118,33 @@ void TCA6416A_set_outputs_high(
     TCA6416A_state_output[TCA6416A_P0] |= (pins);
     TCA6416A_state_output[TCA6416A_P1] |= (pins >> 8);
 
-    TCA6416A_update_outputs(address);
+    TCA6416A_update_outputs(_address);
+}
+
+static void TCA6416A_update_outputs()
+{
+    os_delay_us(20);
+
+    if (I2C_write_single(_address, TCA6416A_REG_CONFIG_0,
+            TCA6416A_state_config[TCA6416A_P0])) {
+
+    }
+
+    if (I2C_write_single(_address, TCA6416A_REG_CONFIG_1,
+            TCA6416A_state_config[TCA6416A_P1])) {
+
+    }
+
+    if (I2C_write_single(_address, TCA6416A_REG_OUTPUT_0,
+            TCA6416A_state_output[TCA6416A_P0])) {
+
+    }
+
+    if (I2C_write_single(_address, TCA6416A_REG_OUTPUT_1,
+            TCA6416A_state_output[TCA6416A_P1])) {
+
+    }
+
+    I2C_stop();
+    os_printf("Updating TCA6416A successful\n");
 }

@@ -15,34 +15,32 @@
 #define TCA6416A_REG_CONFIG_0     0x06
 #define TCA6416A_REG_CONFIG_1     0x07
 
-#define TCA6416A_P0               0x00
-#define TCA6416A_P1               0x01
-
-#define TCA6416A_P0_0             0x0001
-#define TCA6416A_P0_1             0x0002
-#define TCA6416A_P0_2             0x0004
-#define TCA6416A_P0_3             0x0008
-#define TCA6416A_P0_4             0x0010
-#define TCA6416A_P0_5             0x0020
-#define TCA6416A_P0_6             0x0040
-#define TCA6416A_P0_7             0x0080
-
-#define TCA6416A_P1_0             0x0100
-#define TCA6416A_P1_1             0x0200
-#define TCA6416A_P1_2             0x0400
-#define TCA6416A_P1_3             0x0800
-#define TCA6416A_P1_4             0x1000
-#define TCA6416A_P1_5             0x2000
-#define TCA6416A_P1_6             0x4000
-#define TCA6416A_P1_7             0x8000
-
 #define TCA6416A_GPIO_IN          0x01
 #define TCA6416A_GPIO_OUT         0x00
 
-uint8 TCA6416A_state_input[2];
-uint8 TCA6416A_state_output[2];
-uint8 TCA6416A_state_polinv[2];
-uint8 TCA6416A_state_config[2];
+typedef enum {
+    TCA6416A_P0 = 0x0,
+    TCA6416A_P1 = 0x1
+} TCA6416A_port;
+
+typedef enum {
+    TCA6416A_P0_0 = 0x0001,
+    TCA6416A_P0_1 = 0x0002,
+    TCA6416A_P0_2 = 0x0004,
+    TCA6416A_P0_3 = 0x0008,
+    TCA6416A_P0_4 = 0x0010,
+    TCA6416A_P0_5 = 0x0020,
+    TCA6416A_P0_6 = 0x0040,
+    TCA6416A_P0_7 = 0x0080,
+    TCA6416A_P1_0 = 0x0100,
+    TCA6416A_P1_1 = 0x0200,
+    TCA6416A_P1_2 = 0x0400,
+    TCA6416A_P1_3 = 0x0800,
+    TCA6416A_P1_4 = 0x1000,
+    TCA6416A_P1_5 = 0x2000,
+    TCA6416A_P1_6 = 0x4000,
+    TCA6416A_P1_7 = 0x8000
+} TCA6416A_gpio;
 
 // ...
 uint16 TCA6416A_init(
@@ -50,33 +48,18 @@ uint16 TCA6416A_init(
 
 void TCA6416A_reset();
 
-uint8 TCA6416A_update_outputs(
-        uint8 address);
-
 // ...
-uint16 TCA6416A_read_reg(
-        uint8 address,
-        uint8 reg);
+uint8 TCA6416A_get_input(
+        TCA6416A_gpio gpio);
 
-// ...
-uint8 TCA6416A_write_reg(
-        uint8 address,
-        uint8 reg,
-        uint8 data);
-
-// ...
-uint8 TCA6416A_input_get(
-        uint8 address,
-        uint8 gpio);
+uint16 TCA6416A_get_input_diff();
 
 // ...
 void TCA6416A_set_outputs_high(
-        uint8 address,
         uint16 pins);
 
 // ...
 void TCA6416A_set_outputs_low(
-        uint8 address,
         uint16 pins);
 
 #endif

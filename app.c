@@ -31,7 +31,7 @@ void user_init()
 {
     wifi_set_opmode(SOFTAP_MODE);
     UART_SetBaudrate(UART0, BIT_RATE_115200);
-    os_printf("SDK version:%s\n", system_get_sdk_version());
+    os_printf("SDK version: %s", system_get_sdk_version());
     system_init_done_cb(user_start);
 }
 
@@ -45,8 +45,10 @@ void user_start()
     BNO055_init_user(BNO055_ADDR);
     // CC1101_init_user();
 
-    HTTPD_init_user();
+    TASK_init_user();
+    // INTERRUPT_init_user();
     // TIMER_init_use();
+    HTTPD_init_user();
 
     /*
     BME280_get_temperature_int32();

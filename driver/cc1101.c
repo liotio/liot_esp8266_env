@@ -289,37 +289,6 @@ void CC1101_init_spi()
 
 void CC1101_init_interrupt()
 {
-    PIN_FUNC_SELECT(PERIPHS_IO_MUX_GPIO5_U, FUNC_GPIO5); // Pin GPIO 5 as GPIO
-    PIN_PULLUP_DIS(PERIPHS_IO_MUX_GPIO5_U);              // Disable internal pull up
-    GPIO_DIS_OUTPUT(5);                                  // GPIO 5 as Input
-
-    ETS_GPIO_INTR_DISABLE();                             // don't get disturbed by interrupt
-
-    ETS_GPIO_INTR_ATTACH(gpio_intr_handler, &var_intr);
-
-    //    void gpio_register_set(uint32 reg_id, uint32 value);
-    //
-    // From include file
-    //   Set the specified GPIO register to the specified value.
-    //   This is a very general and powerful interface that is not
-    //   expected to be used during normal operation.  It is intended
-    //   mainly for debug, or for unusual requirements.
-    //
-    // All people repeat this mantra but I don't know what it means
-    //
-    gpio_register_set(GPIO_PIN_ADDR(5),
-            GPIO_PIN_INT_TYPE_SET(GPIO_PIN_INTR_DISABLE) |
-            GPIO_PIN_PAD_DRIVER_SET(GPIO_PAD_DRIVER_DISABLE) |
-            GPIO_PIN_SOURCE_SET(GPIO_AS_PIN_SOURCE));
-
-    GPIO_REG_WRITE(GPIO_STATUS_W1TC_ADDRESS, BIT(5));
-
-    // enable interrupt for his GPIO
-    //     GPIO_PIN_INTR_... defined in gpio.h
-
-    gpio_pin_intr_state_set(GPIO_ID_PIN(5), GPIO_PIN_INTR_NEGEDGE);
-
-    ETS_GPIO_INTR_ENABLE();
 }
 
 void CC1101_init_idle()

@@ -18,6 +18,8 @@ void CC1101_init_user();
 
 void HTTPD_init_user();
 
+void TASK_init_user();
+
 void TIMER_init_user();
 
 #endif

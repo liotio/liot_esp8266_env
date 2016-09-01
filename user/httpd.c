@@ -1,7 +1,7 @@
 #include "user/httpd.h"
 
-struct espconn httpdConn;
-esp_tcp httpdTcp;
+static struct espconn httpdConn;
+static esp_tcp httpdTcp;
 
 
 void HTTPD_on_connection(

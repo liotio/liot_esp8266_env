@@ -90,25 +90,4 @@ double BME280_get_pressure_double();
  */
 double BME280_get_humidity_double();
 
-/**
- * Read up to 64 bits from register starting with MSB.
- */
-uint64 BME280_read_reg_msb(
-        uint8 reg,
-        uint8 bits);
-
-/**
- * Read up to 64 bits from register starting with LSB.
- */
-uint64 BME280_read_reg_lsb(
-        uint8 reg,
-        uint8 bits);
-
-/**
- * Write one byte to register.
- */
-uint8 BME280_write_reg(
-        uint8 reg,
-        uint8 data);
-
 #endif

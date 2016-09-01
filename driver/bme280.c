@@ -1,30 +1,30 @@
 #include "driver/bme280.h"
 
 // calibration values
-uint16 dig_T1;
-sint16 dig_T2;
-sint16 dig_T3;
-uint16 dig_P1;
-sint16 dig_P2;
-sint16 dig_P3;
-sint16 dig_P4;
-sint16 dig_P5;
-sint16 dig_P6;
-sint16 dig_P7;
-sint16 dig_P8;
-sint16 dig_P9;
-uint8  dig_H1;
-sint16 dig_H2;
-uint8  dig_H3;
-sint16 dig_H4;
-sint16 dig_H5;
-sint8  dig_H6;
+static uint16 dig_T1;
+static sint16 dig_T2;
+static sint16 dig_T3;
+static uint16 dig_P1;
+static sint16 dig_P2;
+static sint16 dig_P3;
+static sint16 dig_P4;
+static sint16 dig_P5;
+static sint16 dig_P6;
+static sint16 dig_P7;
+static sint16 dig_P8;
+static sint16 dig_P9;
+static uint8  dig_H1;
+static sint16 dig_H2;
+static uint8  dig_H3;
+static sint16 dig_H4;
+static sint16 dig_H5;
+static sint8  dig_H6;
 
 // global temp variable
-sint32 t_fine;
+static sint32 t_fine;
 
 // sensor address
-uint8 _address;
+static uint8 _address;
 
 // typedefs to avoid renaming of datasheet types
 typedef uint32 BME280_U32_t;
@@ -38,26 +38,26 @@ void BME280_init(uint8 address)
     _address = address;
 
     // TODO LSB need other read method
-    dig_T1 = (uint16) BME280_read_reg_lsb(BME280_REG_DIG_T1_LSB, 16);
-    dig_T2 = (sint16) BME280_read_reg_lsb(BME280_REG_DIG_T2_LSB, 16);
-    dig_T3 = (sint16) BME280_read_reg_lsb(BME280_REG_DIG_T3_LSB, 16);
-    dig_P1 = (uint16) BME280_read_reg_lsb(BME280_REG_DIG_P1_LSB, 16);
-    dig_P2 = (sint16) BME280_read_reg_lsb(BME280_REG_DIG_P2_LSB, 16);
-    dig_P3 = (sint16) BME280_read_reg_lsb(BME280_REG_DIG_P3_LSB, 16);
-    dig_P4 = (sint16) BME280_read_reg_lsb(BME280_REG_DIG_P4_LSB, 16);
-    dig_P5 = (sint16) BME280_read_reg_lsb(BME280_REG_DIG_P5_LSB, 16);
-    dig_P6 = (sint16) BME280_read_reg_lsb(BME280_REG_DIG_P6_LSB, 16);
-    dig_P7 = (sint16) BME280_read_reg_lsb(BME280_REG_DIG_P7_LSB, 16);
-    dig_P8 = (sint16) BME280_read_reg_lsb(BME280_REG_DIG_P8_LSB, 16);
-    dig_P9 = (sint16) BME280_read_reg_lsb(BME280_REG_DIG_P9_LSB, 16);
-    dig_H1 = (uint8)  BME280_read_reg_msb(BME280_REG_DIG_H1_MSB,  8);
-    dig_H2 = (sint16) BME280_read_reg_lsb(BME280_REG_DIG_H2_LSB, 16);
-    dig_H3 = (uint8)  BME280_read_reg_msb(BME280_REG_DIG_H3_MSB,  8);
-    dig_H4 = (sint16) BME280_read_reg_msb(BME280_REG_DIG_H4_MSB, 12);
+    dig_T1 = (uint16) I2C_read_multiple_lsb(_address, BME280_REG_DIG_T1_LSB, 16);
+    dig_T2 = (sint16) I2C_read_multiple_lsb(_address, BME280_REG_DIG_T2_LSB, 16);
+    dig_T3 = (sint16) I2C_read_multiple_lsb(_address, BME280_REG_DIG_T3_LSB, 16);
+    dig_P1 = (uint16) I2C_read_multiple_lsb(_address, BME280_REG_DIG_P1_LSB, 16);
+    dig_P2 = (sint16) I2C_read_multiple_lsb(_address, BME280_REG_DIG_P2_LSB, 16);
+    dig_P3 = (sint16) I2C_read_multiple_lsb(_address, BME280_REG_DIG_P3_LSB, 16);
+    dig_P4 = (sint16) I2C_read_multiple_lsb(_address, BME280_REG_DIG_P4_LSB, 16);
+    dig_P5 = (sint16) I2C_read_multiple_lsb(_address, BME280_REG_DIG_P5_LSB, 16);
+    dig_P6 = (sint16) I2C_read_multiple_lsb(_address, BME280_REG_DIG_P6_LSB, 16);
+    dig_P7 = (sint16) I2C_read_multiple_lsb(_address, BME280_REG_DIG_P7_LSB, 16);
+    dig_P8 = (sint16) I2C_read_multiple_lsb(_address, BME280_REG_DIG_P8_LSB, 16);
+    dig_P9 = (sint16) I2C_read_multiple_lsb(_address, BME280_REG_DIG_P9_LSB, 16);
+    dig_H1 = (uint8)  I2C_read_multiple_msb(_address, BME280_REG_DIG_H1_MSB,  8);
+    dig_H2 = (sint16) I2C_read_multiple_lsb(_address, BME280_REG_DIG_H2_LSB, 16);
+    dig_H3 = (uint8)  I2C_read_multiple_msb(_address, BME280_REG_DIG_H3_MSB,  8);
+    dig_H4 = (sint16) I2C_read_multiple_msb(_address, BME280_REG_DIG_H4_MSB, 12);
     // dig_H5 is a special case, see below
-    dig_H6 = (sint8)  BME280_read_reg_msb(BME280_REG_DIG_H6_MSB,  8);
+    dig_H6 = (sint8)  I2C_read_multiple_msb(_address, BME280_REG_DIG_H6_MSB,  8);
 
-    d_H5 = (uint16) BME280_read_reg_lsb(BME280_REG_DIG_H5_LSB, 12);
+    d_H5 = (uint16) I2C_read_multiple_lsb(_address, BME280_REG_DIG_H5_LSB, 12);
     dig_H5 = (sint16) ((d_H5 << 4) & 0xFF0) | ((d_H5 >> 8) & 0xF);
 }
 
@@ -66,7 +66,7 @@ sint32 BME280_get_temperature_int32()
     uint32 data;
     sint32 adc_T;
 
-    data = BME280_read_reg_msb(BME280_REG_TEMP_MSB, 20);
+    data = I2C_read_multiple_msb(_address, BME280_REG_TEMP_MSB, 20);
 
     #ifdef DEBUG
     os_printf("\ndata:   %u", data);
@@ -95,7 +95,7 @@ uint32 BME280_get_pressure_int64()
     uint32 data;
     sint32 adc_P;
 
-    data = BME280_read_reg_msb(BME280_REG_PRESS_MSB, 20);
+    data = I2C_read_multiple_msb(_address, BME280_REG_PRESS_MSB, 20);
 
     #ifdef DEBUG
     os_printf("\ndata:   %u", data);
@@ -139,7 +139,7 @@ uint32 BME280_get_humidity_int32()
     uint32 data;
     sint32 adc_H;
 
-    data = BME280_read_reg_msb(BME280_REG_HUM_MSB, 20);
+    data = I2C_read_multiple_msb(_address, BME280_REG_HUM_MSB, 20);
 
     #ifdef DEBUG
     os_printf("\ndata:   %u", data);
@@ -176,7 +176,7 @@ double BME280_get_temperature_double()
     uint32 data;
     sint32 adc_T;
 
-    data = BME280_read_reg_msb(BME280_REG_TEMP_MSB, 20);
+    data = I2C_read_multiple_msb(_address, BME280_REG_TEMP_MSB, 20);
 
     #ifdef DEBUG
     os_printf("\ndata:   %u", data);
@@ -203,7 +203,7 @@ double BME280_get_pressure_double()
     uint32 data;
     sint32 adc_P;
 
-    data = BME280_read_reg_msb(BME280_REG_PRESS_MSB, 20);
+    data = I2C_read_multiple_msb(_address, BME280_REG_PRESS_MSB, 20);
 
     #ifdef DEBUG
     os_printf("\ndata:   %u", data);
@@ -246,7 +246,7 @@ double BME280_get_humidity_double()
     uint32 data;
     sint32 adc_H;
 
-    data = BME280_read_reg_msb(BME280_REG_HUM_MSB, 20);
+    data = I2C_read_multiple_msb(_address, BME280_REG_HUM_MSB, 20);
 
     #ifdef DEBUG
     os_printf("\ndata:   %u", data);
@@ -270,90 +270,4 @@ double BME280_get_humidity_double()
     else if (var_H < 0.0)
     var_H = 0.0;
     return var_H;
-}
-
-uint64 BME280_read_reg_msb(
-        uint8 reg,
-        uint8 bits)
-{
-    uint64 result = 0;
-
-    if (I2C_start(_address, I2C_SLAVE_WRITE)) {
-        os_printf("\nCannot init writing to BME280");
-        return -1;
-    }
-    if (I2C_write(reg)) {
-        os_printf("\nCannot write register to BME280");
-        return -1;
-    }
-
-    if (I2C_start(_address, I2C_SLAVE_READ)) {
-        os_printf("\nCannot init reading from BME280");
-        return -1;
-    }
-
-    while (bits > 8) {
-        result = (result << 8) | I2C_read_ack();
-        bits -= 8;
-    }
-
-    result = (result << bits) | (I2C_read_nack() >> (8 - bits));
-
-    I2C_stop();
-
-    return result;
-}
-
-uint64 BME280_read_reg_lsb(
-        uint8 reg,
-        uint8 bits)
-{
-    uint64 result = 0;
-    uint8 offset = 0;
-
-    if (I2C_start(_address, I2C_SLAVE_WRITE)) {
-        os_printf("\nCannot init writing to BME280");
-        return -1;
-    }
-    if (I2C_write(reg)) {
-        os_printf("\nCannot write register to BME280");
-        return -1;
-    }
-
-    if (I2C_start(_address, I2C_SLAVE_READ)) {
-        os_printf("\nCannot init reading from BME280");
-        return -1;
-    }
-
-    while (bits > 8) {
-        result = result | I2C_read_ack() << offset;
-        bits -= 8;
-        offset += 8;
-    }
-
-    result = result | (I2C_read_nack() << offset);
-
-    I2C_stop();
-
-    return result;
-}
-
-uint8 BME280_write_reg(
-        uint8 reg,
-        uint8 data)
-{
-    if (I2C_start(_address, I2C_SLAVE_WRITE)) {
-        os_printf("\nCannot init writing to BME280");
-        return -1;
-    }
-    if (I2C_write(reg)) {
-        os_printf("\nCannot write register to BME280");
-        return -1;
-    }
-    if (I2C_write(data)) {
-        os_printf("\nCannot write data to BME280");
-        return -1;
-    }
-
-    return 0;
 }

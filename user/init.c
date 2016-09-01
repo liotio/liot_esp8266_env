@@ -8,6 +8,7 @@
 #include "driver/cc1101.h"
 
 #include "user/sound.h"
+#include "user/task.h"
 
 void SOFTAP_init_user()
 {
@@ -42,11 +43,11 @@ void TCA6416A_init_user(
     TCA6416A_init(address);
 
     // turn on green and orange LED (P0.5 and P0.6) and Buzzer (P0.4)
-    TCA6416A_set_outputs_low(address, TCA6416A_P0_4 | TCA6416A_P0_5 | TCA6416A_P0_6);
+    TCA6416A_set_outputs_low(TCA6416A_P0_4 | TCA6416A_P0_5 | TCA6416A_P0_6);
     // Proof that I/O Port Expander is working
     play_sound(400, 150, 1.0);
     // turn off orange LED (P0.6) and Buzzer (P0.4) again
-    TCA6416A_set_outputs_high(address, TCA6416A_P0_4 | TCA6416A_P0_6);
+    TCA6416A_set_outputs_high(TCA6416A_P0_4 | TCA6416A_P0_6);
 }
 
 void BME280_init_user(
@@ -108,6 +109,13 @@ void CC1101_init_user()
 void HTTPD_init_user()
 {
     HTTPD_init();
+}
+
+void TASK_init_user()
+{
+    // I2C task
+    system_os_task(TASK_i2c, TASK_i2c_prio, TASK_i2c_queue, TASK_i2c_queue_len);
+    system_os_post(TASK_i2c_prio, 0, 0);
 }
 
 void TIMER_init_user()
