@@ -1,4 +1,4 @@
-#include "libs/sounds.h"
+#include "user/sound.h"
 
 void play_sound(
         uint16 tone,

@@ -1,13 +1,11 @@
-#ifndef INTERRUPT_H
-#define INTERRUPT_H
-
+#ifndef USER_INTERRUPT_H
+#define USER_INTERRUPT_H
 
 #include "ets_sys.h"
 #include "osapi.h"
 #include "gpio.h"
 #include "os_type.h"
 #include "user_interface.h"
-
 
 volatile int var_intr;
 

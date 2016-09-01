@@ -44,6 +44,9 @@
 
 #define I2C_TIMEOUT     25000
 
+// set gpio's to open drain
+void I2C_init();
+
 // transmit a byte and return (n)ack
 uint8 I2C_write(
     uint8 data);
@@ -68,9 +71,6 @@ uint8 I2C_read_buf(
     uint8 reg_addr,
     uint8 length,
     uint8 *data);
-
-// set gpio's to open drain
-void I2C_gpio_init();
 
 void I2C_await_clk_strech();
 

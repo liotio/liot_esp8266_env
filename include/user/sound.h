@@ -1,3 +1,6 @@
+#ifndef USER_SOUND_H
+#define USER_SOUND_H
+
 #include "driver/soft_i2c.h"
 
 #define TONE_A_HASH     1080 // 454,6 Hz
@@ -10,3 +13,5 @@ void play_sound(
         uint16 tone,
         uint32 time_ms,
         double vol_pct);
+
+#endif

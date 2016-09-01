@@ -1,5 +1,37 @@
 #include "driver/bno055.h"
 
+uint8 _address;
+
+uint8 BNO055_init(
+        uint8 address)
+{
+    uint8 result = 0;
+
+    _address = address;
+
+    // start config mode
+    result |= BNO055_write_reg(address, BNO055_REG_PAGE_ID, 0);
+    os_delay_us(500);
+    result |= BNO055_write_reg(address, BNO055_REG_OPR_MODE, BNO055_MODE_OP_CFG);
+    os_delay_us(500);
+    result |= BNO055_write_reg(address, BNO055_REG_SYS_TRIGGER, 0x80);
+    os_delay_us(500);
+    result |= BNO055_write_reg(address, BNO055_REG_UNIT_SEL, 0);
+    os_delay_us(500);
+    result |= BNO055_write_reg(address, BNO055_REG_PWR_MODE, BNO055_MODE_PWR_NORMAL);
+    os_delay_us(500);
+    result |= BNO055_write_reg(address, BNO055_REG_OPR_MODE, BNO055_MODE_OP_IMU);
+    os_delay_us(500);
+
+    os_printf("SELFTEST RES: %x\n", (uint8) BNO055_read_reg_16(address, BNO055_REG_SELFTEST_RES));
+    os_delay_us(500);
+    os_printf("SYS_STATUS:   %x\n", (uint8) BNO055_read_reg_16(address, BNO055_REG_SYS_STAT));
+    os_delay_us(500);
+    os_printf("SYS_ERROR:    %x\n", (uint8) BNO055_read_reg_16(address, BNO055_REG_SYS_ERR));
+
+    return result;
+}
+
 uint16 BNO055_read_reg(
         uint8 address,
         uint8 reg)
@@ -124,32 +156,4 @@ uint8 BNO055_write_reg(
     os_printf("Writing to BNO055 successful\n");
 
     return 0;
-}
-
-uint8 BNO055_init(
-        uint8 address)
-{
-    uint8 result = 0;
-
-    // start config mode
-    result |= BNO055_write_reg(address, BNO055_REG_PAGE_ID, 0);
-    os_delay_us(500);
-    result |= BNO055_write_reg(address, BNO055_REG_OPR_MODE, BNO055_MODE_OP_CFG);
-    os_delay_us(500);
-    result |= BNO055_write_reg(address, BNO055_REG_SYS_TRIGGER, 0x80);
-    os_delay_us(500);
-    result |= BNO055_write_reg(address, BNO055_REG_UNIT_SEL, 0);
-    os_delay_us(500);
-    result |= BNO055_write_reg(address, BNO055_REG_PWR_MODE, BNO055_MODE_PWR_NORMAL);
-    os_delay_us(500);
-    result |= BNO055_write_reg(address, BNO055_REG_OPR_MODE, BNO055_MODE_OP_IMU);
-    os_delay_us(500);
-
-    os_printf("SELFTEST RES: %x\n", (uint8) BNO055_read_reg_16(address, BNO055_REG_SELFTEST_RES));
-    os_delay_us(500);
-    os_printf("SYS_STATUS:   %x\n", (uint8) BNO055_read_reg_16(address, BNO055_REG_SYS_STAT));
-    os_delay_us(500);
-    os_printf("SYS_ERROR:    %x\n", (uint8) BNO055_read_reg_16(address, BNO055_REG_SYS_ERR));
-
-    return result;
 }

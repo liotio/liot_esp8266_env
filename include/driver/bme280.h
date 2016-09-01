@@ -76,19 +76,19 @@ uint32 BME280_get_humidity_int32();
  * Output value of “51.23” equals 51.23 DegC.
  * t_fine carries fine temperature as global value
  */
-double BME280_get_temperature();
+double BME280_get_temperature_double();
 
 /**
  * Returns pressure in Pa as double.
  * Output value of “96386.2” equals 96386.2 Pa = 963.862 hPa
  */
-double BME280_get_pressure();
+double BME280_get_pressure_double();
 
 /**
  * Returns humidity in %rH as as double.
  * Output value of “46.332” represents 46.332 %rH
  */
-double BME280_get_humidity();
+double BME280_get_humidity_double();
 
 /**
  * Read up to 64 bits from register starting with MSB.

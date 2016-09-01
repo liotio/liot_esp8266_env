@@ -45,7 +45,10 @@ uint8 TCA6416A_state_polinv[2];
 uint8 TCA6416A_state_config[2];
 
 // ...
-uint16 TCA6416A_init();
+uint16 TCA6416A_init(
+        uint8 address);
+
+void TCA6416A_reset();
 
 uint8 TCA6416A_update_outputs(
         uint8 address);
