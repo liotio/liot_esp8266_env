@@ -1,7 +1,7 @@
 PROGRAM       = esprogram
 FLASH_SIZE    = 32m
 ESPBAUD       = 921600
-ESPPORT       = /dev/ttyUSB0
+# ESPPORT     = set in projects local.mk file
 
 EXTRA_SRCS     = $(ROOT)/sdk/driver_lib
 

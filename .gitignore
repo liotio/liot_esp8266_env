@@ -1,7 +1,10 @@
-#eclipse
+# eclipse
 .cproject
 .project
 
 # binaries
 build
 firmware
+
+# user dependent
+local.mk
