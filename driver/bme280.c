@@ -1,5 +1,8 @@
 #include "driver/bme280.h"
 
+// sensor init
+static uint8 _address = 0;
+
 // calibration values
 static uint16 dig_T1;
 static sint16 dig_T2;
@@ -23,9 +26,6 @@ static sint8  dig_H6;
 // global temp variable
 static sint32 t_fine;
 
-// sensor address
-static uint8 _address;
-
 // typedefs to avoid renaming of datasheet types
 typedef uint32 BME280_U32_t;
 typedef sint32 BME280_S32_t;
@@ -33,9 +33,22 @@ typedef sint64 BME280_S64_t;
 
 void BME280_init(uint8 address)
 {
+    if (I2C_read_single(address, BME280_REG_ID) != BME280_ID) {
+        return;
+    }
+
     _address = address;
 
-    os_printf("\nInit BME280");
+    I2C_write_single(_address, BME280_REG_CTRL_HUM,
+            BME280_OVERSAMPL_HUM_X01);
+
+    I2C_write_single(_address, BME280_REG_CTRL_MEAS,
+            BME280_MODE_NORMAL |
+            BME280_OVERSAMPL_TEM_X01 |
+            BME280_OVERSAMPL_PRS_X01);
+
+    I2C_write_single(_address, BME280_REG_CONFIG,
+            BME280_T_STANDBY_MS_1000);
 
     // TODO LSB need other read method
     dig_T1 = (uint16) I2C_read_multiple_lsb(_address, BME280_REG_DIG_T1_LSB, 16);
@@ -62,6 +75,11 @@ void BME280_init(uint8 address)
     dig_H5 = (sint16) ((d_H5 << 4) & 0xFF0) | ((d_H5 >> 8) & 0xF);
 }
 
+uint8 BME280_initialized()
+{
+    return _address != 0;
+}
+
 sint32 BME280_get_temperature_int32()
 {
     uint32 data;
@@ -80,15 +98,15 @@ sint32 BME280_get_temperature_int32()
 
     // Code from Datasheet, formatted by Eclipse
 
-    BME280_S32_t var1, var2, T;
+    BME280_S32_t var1, var2;
     var1 = ((((adc_T >> 3) - ((BME280_S32_t) dig_T1 << 1)))
             * ((BME280_S32_t) dig_T2)) >> 11;
     var2 = (((((adc_T >> 4) - ((BME280_S32_t) dig_T1))
             * ((adc_T >> 4) - ((BME280_S32_t) dig_T1))) >> 12)
             * ((BME280_S32_t) dig_T3)) >> 14;
     t_fine = var1 + var2;
-    T = (t_fine * 5 + 128) >> 8;
-    return T;
+    BME280_temp_sint = (t_fine * 5 + 128) >> 8;
+    return BME280_temp_sint;
 }
 
 uint32 BME280_get_pressure_int64()
@@ -131,8 +149,8 @@ uint32 BME280_get_pressure_int64()
     p = (((p << 31) - var2) * 3125) / var1;
     var1 = (((BME280_S64_t) dig_P9) * (p >> 13) * (p >> 13)) >> 25;
     var2 = (((BME280_S64_t) dig_P8) * p) >> 19;
-    p = ((p + var1 + var2) >> 8) + (((BME280_S64_t) dig_P7) << 4);
-    return (BME280_U32_t) p;
+    BME280_press_uint = (BME280_U32_t) ((p + var1 + var2) >> 8) + (((BME280_S64_t) dig_P7) << 4);
+    return BME280_press_uint;
 }
 
 uint32 BME280_get_humidity_int32()
@@ -140,7 +158,7 @@ uint32 BME280_get_humidity_int32()
     uint32 data;
     sint32 adc_H;
 
-    data = I2C_read_multiple_msb(_address, BME280_REG_HUM_MSB, 20);
+    data = I2C_read_multiple_msb(_address, BME280_REG_HUM_MSB, 16);
 
     #ifdef DEBUG
     os_printf("\ndata:   %u", data);
@@ -169,7 +187,8 @@ uint32 BME280_get_humidity_int32()
                     * ((BME280_S32_t) dig_H1)) >> 4));
     v_x1_u32r = (v_x1_u32r < 0 ? 0 : v_x1_u32r);
     v_x1_u32r = (v_x1_u32r > 419430400 ? 419430400 : v_x1_u32r);
-    return (BME280_U32_t) (v_x1_u32r >> 12);
+    BME280_hum_uint = (BME280_U32_t) (v_x1_u32r >> 12);
+    return BME280_hum_uint;
 }
 
 double BME280_get_temperature_double()

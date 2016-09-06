@@ -41,6 +41,7 @@ void TCA6416A_init_user()
 
 void BME280_init_user()
 {
+    os_printf("\nInit BME280");
     BME280_init(BME280_ADDR);
 }
 

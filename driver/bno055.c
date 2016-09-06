@@ -5,6 +5,10 @@ static uint8 _address;
 void BNO055_init(
         uint8 address)
 {
+    if (I2C_read_single(address, BNO055_REG_CHIP_ID) != BNOO055_ID) {
+        return;
+    }
+
     _address = address;
 
     os_printf("\nInit BNO055");
@@ -30,6 +34,11 @@ void BNO055_init(
     os_delay_us(500);
     os_printf("SYS_ERROR:    %x\n", (uint8) I2C_read_single(address, BNO055_REG_SYS_ERR));
     #endif
+}
+
+uint8 BNO055_initialized()
+{
+    return _address != 0;
 }
 
 uint64 BNO055_read_euler()

@@ -3,6 +3,8 @@
 
 #include "driver/soft_i2c.h"
 
+#define BNOO055_ID              0xA0
+
 #define BNO055_ADDR_LOW         0x28
 #define BNO055_ADDR_HIGH        0x29
 
@@ -75,6 +77,8 @@
 
 void BNO055_init(
         uint8 address);
+
+uint8 BNO055_initialized();
 
 uint64 BNO055_read_euler();
 
