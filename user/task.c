@@ -4,23 +4,24 @@ static os_event_t TASK_i2c_queue[TASK_i2c_queue_len];
 
 void TASK_i2c(os_event_t *events)
 {
-    // system_soft_wdt_stop();
-    sint16 head, roll, ptch;
+    os_printf("\n\nBNO055");
+
+    sint16 head, roll, pitch;
     uint64 data;
+    data = BNO055_read_euler();
 
-    data = BNO055_read_reg_48(BNO055_ADDR, BNO055_REG_EUL_HEAD_L);
-    ptch = (sint16) (data & 0xFFFF) / 16;
-    data = data >> 16;
-    roll = (sint16) (data & 0xFFFF) / 16;
-    data = data >> 16;
-    head = (sint16) (data & 0xFFFF) / 16;
-    // system_soft_wdt_restart();
+    head  = (sint16) (data & 0xFFFF) / 16;
+    data  = data >> 16;
+    roll  = (sint16) (data & 0xFFFF) / 16;
+    data  = data >> 16;
+    pitch = (sint16) (data & 0xFFFF) / 16;
 
+    os_printf("\nHEAD:  %d", head);
     os_printf("\nROLL:  %d", roll);
-    os_printf("\nPITCH: %d", ptch);
+    os_printf("\nPITCH: %d", pitch);
 
-    if ((ptch < -45 && ptch >= -180)
-            || (ptch > 45 && ptch <= 180)
+    if ((pitch < -45 && pitch >= -180)
+            || (pitch > 45 && pitch <= 180)
             || (roll < -45 && roll >= -180)
             || (roll > 45 && roll <= 180)) {
 
@@ -39,11 +40,10 @@ void TASK_i2c(os_event_t *events)
     // TIMER_task_i2c_stop
     // restart timer when interrupt from BNO055 received
 
-    /*
-    BME280_get_temperature_int32();
-    BME280_get_humidity_int32();
-    BME280_get_pressure_int64();
-    */
+    os_printf("\n\nBME280");
+    os_printf("\n\nTEMP:  %d", BME280_get_temperature_int32());
+    os_printf("\n\nHUM:   %d", BME280_get_humidity_int32());
+    os_printf("\n\nPRESS: %d", BME280_get_pressure_int64());
 }
 
 void TASK_i2c_init()

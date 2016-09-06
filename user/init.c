@@ -87,11 +87,6 @@ void CC1101_init_user()
     */
 }
 
-void HTTPD_init_user()
-{
-    HTTPD_init();
-}
-
 void TASK_init_user()
 {
     // I2C task
@@ -101,4 +96,10 @@ void TASK_init_user()
 void TIMER_init_user()
 {
     TIMER_task_i2c_init();
+}
+
+void HTTPD_init_user()
+{
+    os_printf("\nInit HTTPD");
+    HTTPD_init();
 }

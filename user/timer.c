@@ -4,9 +4,9 @@ static os_timer_t TIMER_task_i2c_timer;
 
 void TIMER_task_i2c_init()
 {
-    // start timer every 5 minutes
+    // start timer every 10 seconds
     os_timer_setfn(&TIMER_task_i2c_timer, (os_timer_func_t *) TIMER_task_i2c, NULL);
-    os_timer_arm(&TIMER_task_i2c_timer, 250, 1);
+    os_timer_arm(&TIMER_task_i2c_timer, 10000, 1);
 }
 
 void TIMER_task_i2c_stop()

@@ -7,6 +7,11 @@
  *
  */
 
+// wait for ack until timeout reached
+static uint8 I2C_await_ack();
+// wait for clock stretch until timeout reached
+static void I2C_await_clk_strech();
+
 void I2C_init()
 {
     // avoid being interrupted
@@ -25,44 +30,30 @@ void I2C_init()
     ETS_GPIO_INTR_ENABLE();
 }
 
-uint8 I2C_restart()
-{
-    // generate start sequence
-    I2C_DELAY;
-    I2C_SDA_HIGH;
-    I2C_DELAY;
-    I2C_SCK_HIGH;
-    I2C_DELAY;
-
-    I2C_SDA_LOW;
-    I2C_DELAY;
-
-    I2C_SCK_LOW;
-    I2C_DELAY;
-}
-
 uint8 I2C_start(
     uint8 address,
     uint8 readwrite)
 {
-    uint8 data;
-
-    // set gpio's to open drain
-    // I2C_gpio_init();
-
     // generate start sequence
-    I2C_restart();
+    I2C_SDA_HIGH;
+    I2C_SCK_HIGH;
+    I2C_DELAY;
+
+    I2C_SDA_LOW;
+    I2C_DELAY;
+
+    I2C_SCK_LOW;
+    I2C_DELAY;
 
     // shift address one position to left, take
     // readwrite bit to least significant bit and
     // write this data out to the slave device(s)
-    data = (address << 1) | (readwrite & 1);
-    return I2C_write(data);
+    return I2C_write((address << 1) | (readwrite & 1));
 }
 
 void I2C_stop()
 {
-    //TODO Remove next 2?
+    // generate stop sequence
     I2C_SDA_LOW;
     I2C_SCK_LOW;
     I2C_DELAY;
@@ -74,24 +65,29 @@ void I2C_stop()
     I2C_DELAY;
 }
 
-void I2C_await_clk_strech()
+static void I2C_await_clk_strech()
 {
+    uint32 timeout;
     // wait while slave pulls low clock line (clock streching)
     I2C_SCK_IN;
     I2C_DELAY;
-    while (I2C_SCK_READ == 0) {
+    I2C_DELAY;
+
+    timeout = I2C_TIMEOUT;
+    while (timeout) {
+        if (I2C_SCK_READ == GPIO_HIGH) {
+            break;
+        }
+
         I2C_DELAY;
+        timeout--;
     }
 }
 
-uint8 I2C_await_ack()
+static uint8 I2C_await_ack()
 {
     uint8 ack, sck;
     uint32 timeout;
-
-    #ifdef DEBUG
-    os_printf("\r\n");
-    #endif
 
     // read ack value
 
@@ -108,16 +104,9 @@ uint8 I2C_await_ack()
         if (ack == GPIO_LOW) {
             break;
         }
-        #ifdef DEBUG
-        os_printf("\nWait for I2C ack");
-        #endif
         I2C_DELAY;
         timeout--;
     }
-
-    #ifdef DEBUG
-    os_printf("\r\n");
-    #endif
 
     I2C_SCK_LOW;
     I2C_DELAY;
@@ -128,11 +117,10 @@ uint8 I2C_await_ack()
 uint8 I2C_write(
     uint8 data)
 {
-    uint8 i;
-    uint8 ack;
+    uint8 i, ack;
 
     #ifdef DEBUG
-    os_printf("\r\n");
+    os_printf("\n");
     #endif
 
     // shift out the data bits starting with
@@ -158,12 +146,6 @@ uint8 I2C_write(
     }
 
     ack = I2C_await_ack();
-
-    #ifdef DEBUG
-    os_printf("\r\n");
-    #endif
-
-    I2C_DELAY;
 
     if (ack) {
         I2C_stop();
@@ -213,13 +195,37 @@ uint8 I2C_write_buffer(
     return 0;
 }
 
+uint8 I2C_read_init(
+		uint8 slave_addr,
+		uint8 reg_addr)
+{
+    if (I2C_start(slave_addr, I2C_SLAVE_WRITE)) {
+        os_printf("\nCannot init writing to slave");
+        return -1;
+    }
+
+    if (I2C_write(reg_addr)) {
+        os_printf("\nCannot write register to slave");
+        return -1;
+    }
+
+    I2C_await_clk_strech();
+
+    if (I2C_start(slave_addr, I2C_SLAVE_READ)) {
+        os_printf("\nCannot init reading from slave");
+        return -1;
+    }
+
+    return 0;
+}
+
 uint8 I2C_read(uint8 ack)
 {
     uint8 i;
     uint8 data = 0;
 
     #ifdef DEBUG
-    os_printf("\r\n");
+    os_printf("\n");
     #endif
 
     // I2C_SDA_HIGH;
@@ -253,13 +259,7 @@ uint8 I2C_read(uint8 ack)
     I2C_DELAY;
 
     I2C_SCK_LOW;
-    // TODO useless?
-    // I2C_SDA_HIGH;
     I2C_DELAY;
-
-    #ifdef DEBUG
-    os_printf("\r\n");
-    #endif
 
     return data;
 }
@@ -288,19 +288,7 @@ uint64 I2C_read_multiple_msb(
 {
     uint64 result = 0;
 
-    if (I2C_start(slave_addr, I2C_SLAVE_WRITE)) {
-        os_printf("\nCannot init writing to slave");
-        return -1;
-    }
-    if (I2C_write(reg_addr)) {
-        os_printf("\nCannot write register to slave");
-        return -1;
-    }
-
-    if (I2C_start(slave_addr, I2C_SLAVE_READ)) {
-        os_printf("\nCannot init reading from slave");
-        return -1;
-    }
+    I2C_read_init(slave_addr, reg_addr);
 
     while (bits > 8) {
         result = (result << 8) | I2C_read_ack();
@@ -322,27 +310,15 @@ uint64 I2C_read_multiple_lsb(
     uint64 result = 0;
     uint8 offset = 0;
 
-    if (I2C_start(slave_addr, I2C_SLAVE_WRITE)) {
-        os_printf("\nCannot init writing to slave");
-        return -1;
-    }
-    if (I2C_write(reg_addr)) {
-        os_printf("\nCannot write register to slave");
-        return -1;
-    }
-
-    if (I2C_start(slave_addr, I2C_SLAVE_READ)) {
-        os_printf("\nCannot init reading from slave");
-        return -1;
-    }
+    I2C_read_init(slave_addr, reg_addr);
 
     while (bits > 8) {
-        result = result | I2C_read_ack() << offset;
+        result |= ((uint64) I2C_read_ack() << offset);
         bits -= 8;
         offset += 8;
     }
 
-    result = result | (I2C_read_nack() << offset);
+    result = result | ((uint64) I2C_read_nack() << offset);
 
     I2C_stop();
 
@@ -355,15 +331,8 @@ uint8 I2C_read_buffer(
     uint8 length,
     uint8 *data)
 {
-    if (I2C_start(slave_addr, I2C_SLAVE_WRITE)) {
-        return 1;
-    }
-    if (I2C_write(reg_addr)) {
-        return 1;
-    }
-    if (I2C_start(slave_addr, I2C_SLAVE_READ)) {
-        return 1;
-    }
+    I2C_read_init(slave_addr, reg_addr);
+
     while ((length--) > 1)
     {
         *data = I2C_read_ack();

@@ -42,20 +42,17 @@
 
 #define I2C_DELAY       os_delay_us(4); system_soft_wdt_feed();
 
-#define I2C_TIMEOUT     25000
+#define I2C_TIMEOUT     50000
 
 // set gpio's to open drain
 void I2C_init();
 
-// send start sequence
-uint8 I2C_restart();
-
-// send start sequence and device address + read / write bit
+// write start sequence and device address + read / write bit
 uint8 I2C_start(
     uint8 slave_addr,
     uint8 readwrite);
 
-// send stop sequence
+// write stop sequence
 void I2C_stop();
 
 // transmit a byte and return (n)ack
@@ -73,14 +70,12 @@ uint8 I2C_write_buffer(
     uint8 length,
     uint8 const *data);
 
+uint8 I2C_read_init(
+		uint8 slave_addr,
+		uint8 reg_addr);
+
 // receive one byte and generate (n)ack
 uint8 I2C_read(uint8 ack);
-
-// receive one byte and generate ack
-uint8 I2C_read_ack();
-
-// receive one byte and generate nack
-uint8 I2C_read_nack();
 
 uint8 I2C_read_single(
         uint8 slave_addr,
@@ -102,6 +97,9 @@ uint8 I2C_read_buffer(
     uint8 length,
     uint8 *data);
 
-void I2C_await_clk_strech();
+// receive one byte and generate ack
+uint8 I2C_read_ack();
+// receive one byte and generate nack
+uint8 I2C_read_nack();
 
 #endif

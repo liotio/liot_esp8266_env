@@ -125,27 +125,17 @@ void TCA6416A_set_outputs_high(
 
 static void TCA6416A_update_outputs()
 {
-    os_delay_us(20);
+    I2C_write_single(_address, TCA6416A_REG_CONFIG_0,
+            TCA6416A_state_config[TCA6416A_P0]);
 
-    if (I2C_write_single(_address, TCA6416A_REG_CONFIG_0,
-            TCA6416A_state_config[TCA6416A_P0])) {
+    I2C_write_single(_address, TCA6416A_REG_CONFIG_1,
+            TCA6416A_state_config[TCA6416A_P1]);
 
-    }
+    I2C_write_single(_address, TCA6416A_REG_OUTPUT_0,
+            TCA6416A_state_output[TCA6416A_P0]);
 
-    if (I2C_write_single(_address, TCA6416A_REG_CONFIG_1,
-            TCA6416A_state_config[TCA6416A_P1])) {
-
-    }
-
-    if (I2C_write_single(_address, TCA6416A_REG_OUTPUT_0,
-            TCA6416A_state_output[TCA6416A_P0])) {
-
-    }
-
-    if (I2C_write_single(_address, TCA6416A_REG_OUTPUT_1,
-            TCA6416A_state_output[TCA6416A_P1])) {
-
-    }
+    I2C_write_single(_address, TCA6416A_REG_OUTPUT_1,
+            TCA6416A_state_output[TCA6416A_P1]);
 
     I2C_stop();
 }

@@ -76,18 +76,6 @@
 void BNO055_init(
         uint8 address);
 
-// ...
-uint16 BNO055_read_reg(
-        uint8 address,
-        uint8 reg);
-
-// ...
-uint32 BNO055_read_reg_16(
-        uint8 address,
-        uint8 reg);
-
-uint64 BNO055_read_reg_48(
-        uint8 address,
-        uint8 reg);
+uint64 BNO055_read_euler();
 
 #endif

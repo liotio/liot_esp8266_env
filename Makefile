@@ -1,4 +1,4 @@
-PROGRAM       = esprogram
+PROGRAM       = liot_esp8266_env
 FLASH_SIZE    = 32m
 ESPBAUD       = 921600
 # ESPPORT     = set in projects local.mk file
