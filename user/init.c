@@ -29,14 +29,17 @@ void I2C_init_user()
 
 void TCA6416A_init_user()
 {
+    os_printf("\nInit TCA6416A");
     TCA6416A_init(TCA6416A_ADDR);
 
-    // turn on green and orange LED (P0.5 and P0.6) and Buzzer (P0.4)
-    TCA6416A_set_outputs_low(TCA6416A_P0_4 | TCA6416A_P0_5 | TCA6416A_P0_6);
-    // Proof that I/O Port Expander is working
-    play_sound(400, 150, 1.0);
-    // turn off orange LED (P0.6) and Buzzer (P0.4) again
-    TCA6416A_set_outputs_high(TCA6416A_P0_4 | TCA6416A_P0_6);
+    if (TCA6416A_initialized()) {
+        // turn on green and orange LED (P0.5 and P0.6) and Buzzer (P0.4)
+        TCA6416A_set_outputs(TCA6416A_P0_4 | TCA6416A_P0_5 | TCA6416A_P0_6, 0);
+        // Proof that I/O Port Expander is working
+        play_sound(400, 150, 1.0);
+        // turn off orange LED (P0.6) and Buzzer (P0.4) again
+        TCA6416A_set_outputs(TCA6416A_P0_4 | TCA6416A_P0_6, 1);
+    }
 }
 
 void BME280_init_user()
@@ -47,17 +50,8 @@ void BME280_init_user()
 
 void BNO055_init_user()
 {
+    os_printf("\nInit BNO055");
     BNO055_init(BNO055_ADDR);
-
-    /*
-    uint16 data;
-    data = BNO055_read_reg(BNO055_ADDR_HIGH, BNO055_REG_CHIP_ID);
-    if (data == (uint16) -1) {
-        os_printf("Error\n");
-    } else {
-        os_printf("Chip ID: %u\n", data);
-    }
-    */
 }
 
 void CC1101_init_user()

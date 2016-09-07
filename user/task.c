@@ -27,13 +27,13 @@ void TASK_i2c(os_event_t *events)
                 || (roll > 45 && roll <= 180)) {
 
             os_delay_us(500);
-            TCA6416A_set_outputs_low(TCA6416A_P0_4);
+            TCA6416A_set_outputs(TCA6416A_P0_4, 0);
             os_delay_us(500);
 
-            play_sound( 400, 200, 0.06);
+            play_sound( 400, 200, 0.1);
 
             os_delay_us(500);
-            TCA6416A_set_outputs_high(TCA6416A_P0_4);
+            TCA6416A_set_outputs(TCA6416A_P0_4, 1);
         }
 
         // if orientation did not changed for 5 minutes,
@@ -56,7 +56,7 @@ void TASK_i2c(os_event_t *events)
         uint32 hum_pre = hum / 1024;
         uint32 hum_post = hum % 1024;
 
-        os_printf("\nHUM:   %u.%u pcRH", hum_pre, hum_post);
+        os_printf("\nHUM:   %u.%u pctRH", hum_pre, hum_post);
 
         uint32 press = BME280_get_pressure_int64() / 256;
         uint32 press_pre = press / 100;

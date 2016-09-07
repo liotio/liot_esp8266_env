@@ -64,7 +64,7 @@ void HTTPD_on_receive(
             uint32 press_pre = press / 100;
             uint32 press_post = press % 100;
 
-            os_sprintf(buffer, "\nTEMP: %d.%u degC\nHUM: %u.%u pcRH\nPRESS: %u.%u hPa", temp_pre, temp_post, hum_pre, hum_post, press_pre, press_post);
+            os_sprintf(buffer, "\nTEMP: %d.%u degC\nHUM: %u.%u pctRH\nPRESS: %u.%u hPa", temp_pre, temp_post, hum_pre, hum_post, press_pre, press_post);
 
             espconn_sent(conn, buffer, os_strlen(buffer));
         }

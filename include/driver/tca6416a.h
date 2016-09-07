@@ -42,24 +42,22 @@ typedef enum {
     TCA6416A_P1_7 = 0x8000
 } TCA6416A_gpio;
 
-// ...
-uint16 TCA6416A_init(
+uint8 TCA6416A_state_input[2];
+
+void TCA6416A_init(
         uint8 address);
+
+uint8 TCA6416A_initialized();
 
 void TCA6416A_reset();
 
-// ...
 uint8 TCA6416A_get_input(
         TCA6416A_gpio gpio);
 
 uint16 TCA6416A_get_input_diff();
 
-// ...
-void TCA6416A_set_outputs_high(
-        uint16 pins);
-
-// ...
-void TCA6416A_set_outputs_low(
-        uint16 pins);
+void TCA6416A_set_outputs(
+        uint16 pins,
+		uint8 levels);
 
 #endif

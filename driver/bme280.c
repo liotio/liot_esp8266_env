@@ -50,7 +50,6 @@ void BME280_init(uint8 address)
     I2C_write_single(_address, BME280_REG_CONFIG,
             BME280_T_STANDBY_MS_1000);
 
-    // TODO LSB need other read method
     dig_T1 = (uint16) I2C_read_multiple_lsb(_address, BME280_REG_DIG_T1_LSB, 16);
     dig_T2 = (sint16) I2C_read_multiple_lsb(_address, BME280_REG_DIG_T2_LSB, 16);
     dig_T3 = (sint16) I2C_read_multiple_lsb(_address, BME280_REG_DIG_T3_LSB, 16);
