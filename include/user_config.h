@@ -3,6 +3,10 @@
 
 // #define DEBUG 1
 
+#define USE_OPTIMIZE_PRINTF
+
+#include "mqtt_config.h"
+
 #include "driver/bme280.h"
 #include "driver/bno055.h"
 #include "driver/tca6416a.h"

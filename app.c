@@ -6,6 +6,7 @@
 #include "user_interface.h"
 #include "espconn.h"
 
+#include "mqtt_config.h"
 #include "user_config.h"
 #include "user_types.h"
 #include "wifi_config.h"
@@ -18,9 +19,12 @@
 #include "driver/cc1101.h"
 #include "driver/tca6416a.h"
 
+#include "lib/mqtt/mqtt.h"
+
 #include "user/httpd.h"
 #include "user/init.h"
 #include "user/interrupt.h"
+#include "user/mqtt.h"
 #include "user/sound.h"
 #include "user/timer.h"
 

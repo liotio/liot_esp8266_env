@@ -1,6 +1,7 @@
 # eclipse
 .cproject
 .project
+.settings
 
 # binaries
 build
@@ -8,3 +9,5 @@ firmware
 
 # user dependent
 local.mk
+
+include/mqtt_config.h
