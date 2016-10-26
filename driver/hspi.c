@@ -2,6 +2,7 @@
 
 void HSPI_init()
 {
+    /*
     SpiAttr spi_attr = {
             SpiMode_Master,
             SpiSubMode_0,
@@ -10,6 +11,7 @@ void HSPI_init()
     };
 
     SPIInit(HSPI, spi_attr);
+    */
 
     HSPI_init_gpio(HSPI_CLK_USE_DIV);
     HSPI_set_clock(HSPI_CLK_PREDIV, HSPI_CLK_CNTDIV);
