@@ -56,22 +56,26 @@ void BNO055_init_user()
 
 void CC1101_init_user()
 {
-    // CC1101_init();
+    os_printf("\nInit CC1101");
+    CC1101_init();
 
-    CC1101_init_spi();
-    powerUpReset();
+    // CC1101_init_spi();
+    // powerUpReset();
 
-    spiInitTrx();
+    CC1101_spi_init_trx();
     HSPI_transaction(0,0,8,0x02 | CC1101_WRITE_SINGLE,8,0x0E,0,0);
 
     os_delay_us(1000);
-    spiInitTrx();
-    os_printf("GDO0: %x\n", (uint8) HSPI_transaction(0,0,8,0x02 | CC1101_READ_SINGLE,0,0,8,0));
-    spiInitTrx();
-    os_printf("GDO1: %x\n", (uint8) HSPI_transaction(0,0,8,0x01 | CC1101_READ_SINGLE,0,0,8,0));
-    spiInitTrx();
-    os_printf("GDO2: %x\n", (uint8) HSPI_transaction(0,0,8,0x00 | CC1101_READ_SINGLE,0,0,8,0));
 
+    CC1101_spi_init_trx();
+    os_printf("\nGDO0: %x", (uint8) HSPI_transaction(0,0,8,0x02 | CC1101_READ_SINGLE,0,0,8,0));
+    CC1101_spi_init_trx();
+    os_printf("\nGDO1: %x\n", (uint8) HSPI_transaction(0,0,8,0x01 | CC1101_READ_SINGLE,0,0,8,0));
+    CC1101_spi_init_trx();
+    os_printf("\nGDO2: %x\n", (uint8) HSPI_transaction(0,0,8,0x00 | CC1101_READ_SINGLE,0,0,8,0));
+
+    CC1101_set_channel(1);
+    CC1101_set_id(1);
     /*
     if (!CC1101_set_channel(1)) {
         os_printf("Error setting channel");

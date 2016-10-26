@@ -41,14 +41,14 @@ void user_start()
 
     I2C_init_user();
     TCA6416A_init_user();
-    BME280_init_user();
+    // BME280_init_user();
     BNO055_init_user();
-    // CC1101_init_user();
+    CC1101_init_user();
 
-    os_delay_us(1000000);
+    os_delay_us(2000000);
 
     TASK_init_user();
-    // INTERRUPT_init_user();
+    INTERRUPT_init_user();
     TIMER_init_user();
     HTTPD_init_user();
 }

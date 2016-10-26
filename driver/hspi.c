@@ -2,6 +2,15 @@
 
 void HSPI_init()
 {
+    SpiAttr spi_attr = {
+            SpiMode_Master,
+            SpiSubMode_0,
+            SpiSpeed_10MHz,
+            SpiBitOrder_MSBFirst,
+    };
+
+    SPIInit(HSPI, spi_attr);
+
     HSPI_init_gpio(HSPI_CLK_USE_DIV);
     HSPI_set_clock(HSPI_CLK_PREDIV, HSPI_CLK_CNTDIV);
     HSPI_set_tx_byte_order(HSPI_MSB_FIRST);

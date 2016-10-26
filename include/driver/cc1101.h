@@ -197,7 +197,7 @@ typedef struct RCC1101
     unsigned char length;   // Längenbyte muß <= 62 sein
     unsigned char dest;     // Zieladresse des empfangenen Packetes
     unsigned char source;   // Quelladresse des empfangenen Packetes
-    char data[61];          // RxCC1101.data[0] Zieladresse
+    char data[CC1101_MAX_DATA_LENGTH]; // RxCC1101.data[0] Zieladresse
                             // RxCC1101.data[1] Quelladresse
                             // RxCC1101.data[2..59] Daten
     unsigned char RSSI;     // The RSSI value of last received packet
@@ -216,7 +216,7 @@ typedef struct TCC1101
     unsigned char length;   // Länge Daten  (max 59)
     unsigned char dest;     // Zieladresse  (0..255)
     unsigned char source;   // Quelladresse (0..255)
-    char data[59];          // Daten        (max 60)
+    char data[CC1101_MAX_DATA_LENGTH]; // Daten        (max 60)
     }
     CC1101_Tx;
 extern volatile  CC1101_Tx TxCC1101;    //
@@ -224,18 +224,18 @@ extern volatile  CC1101_Tx TxCC1101;    //
 
 
 //=============================================================================
-void spiInitTrx();
-void spiStrobe(unsigned char strobe);
+void CC1101_spi_init_trx();
+void CC1101_spi_strobe(unsigned char strobe);
 // startet SPI auf dem CC1101
 
-void powerUpReset();
+void CC1101_poweronreset();
 
 //=============================================================================
 void CC1101_init();
 // Initialisierung des CC1101 Transceiver
 
 //=============================================================================
-void CC1101_init_spi();
+void CC1101_spi_init();
 // Initialisierung der SPI1 Schnittstelle
 
 //=============================================================================

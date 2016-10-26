@@ -18,6 +18,7 @@
 #include "gpio.h"
 #include "osapi.h"
 
+#include "driver/spi_interface.h"
 #include "driver/spi_register.h"
 
 
@@ -30,10 +31,10 @@
 #define HSPI                      1  // other SPI has number 0
 
 #define FUNC_HSPI                 2  // HSPI is always func 2 on multiplexed GPIO
-#define FUNC_GPIO_HSPI_CLK        FUNC_GPIO9
-#define FUNC_GPIO_HSPI_MISO       FUNC_GPIO10
-#define FUNC_GPIO_HSPI_MOSI       FUNC_GPIO12
-#define FUNC_GPIO_HSPI_CS         FUNC_GPIO13
+#define FUNC_GPIO_HSPI_CLK        FUNC_GPIO14
+#define FUNC_GPIO_HSPI_MISO       FUNC_GPIO12
+#define FUNC_GPIO_HSPI_MOSI       FUNC_GPIO13
+#define FUNC_GPIO_HSPI_CS         FUNC_GPIO15
 
 // define values for different byte orders
 #define HSPI_MSB_FIRST            1
