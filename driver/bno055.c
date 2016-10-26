@@ -5,7 +5,7 @@ static uint8 _address;
 void BNO055_init(
         uint8 address)
 {
-    if (I2C_read_single(address, BNO055_REG_CHIP_ID) != BNOO055_ID) {
+    if (I2C_read_single(address, BNO055_REG_ID) != BNOO055_ID) {
         return;
     }
 
@@ -35,6 +35,6 @@ uint8 BNO055_initialized()
 
 uint64 BNO055_read_euler()
 {
-    // get data in right order, but first pitch, then roll, last head
+    // get bits in right order, but first pitch, then roll, last head
     return I2C_read_multiple_lsb(_address, BNO055_REG_EUL_HEAD_L, 48);
 }

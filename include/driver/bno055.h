@@ -8,7 +8,7 @@
 #define BNO055_ADDR_LOW         0x28
 #define BNO055_ADDR_HIGH        0x29
 
-#define BNO055_REG_CHIP_ID      0x00
+#define BNO055_REG_ID           0x00
 #define BNO055_REG_GYR_ID       0x01
 #define BNO055_REG_MAG_ID       0x02
 #define BNO055_REG_ACC_ID       0x03
