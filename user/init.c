@@ -34,11 +34,12 @@ void TCA6416A_init_user()
 
     if (TCA6416A_initialized()) {
         // turn on green and orange LED (P0.5 and P0.6) and Buzzer (P0.4)
-        TCA6416A_set_outputs(TCA6416A_P0_4 | TCA6416A_P0_5 | TCA6416A_P0_6, 0);
+        // TCA6416A_set_outputs(TCA6416A_P0_4 | TCA6416A_P0_5 | TCA6416A_P0_6, 0);
         // Proof that I/O Port Expander is working
-        play_sound(400, 150, 1.0);
+        // play_sound(400, 150, 1.0);
         // turn off orange LED (P0.6) and Buzzer (P0.4) again
-        TCA6416A_set_outputs(TCA6416A_P0_4 | TCA6416A_P0_6, 1);
+        // TCA6416A_set_outputs(TCA6416A_P0_4 | TCA6416A_P0_6, 1);
+        TCA6416A_set_outputs(TCA6416A_P0_5, 0);
     }
 }
 
@@ -59,31 +60,18 @@ void CC1101_init_user()
     os_printf("\nInit CC1101");
     CC1101_init();
 
-    // CC1101_init_spi();
-    // powerUpReset();
+    /*
+    uint8_t i;
+    uint8_t buf[3];
+    CC1101_spi_read_burst(0x00, buf, 3);
 
-    CC1101_spi_init_trx();
-    HSPI_transaction(0,0,8,0x02 | CC1101_WRITE_SINGLE,8,0x0E,0,0);
-
-    os_delay_us(1000);
-
-    CC1101_spi_init_trx();
-    os_printf("\nGDO0: %x", (uint8) HSPI_transaction(0,0,8,0x02 | CC1101_READ_SINGLE,0,0,8,0));
-    CC1101_spi_init_trx();
-    os_printf("\nGDO1: %x\n", (uint8) HSPI_transaction(0,0,8,0x01 | CC1101_READ_SINGLE,0,0,8,0));
-    CC1101_spi_init_trx();
-    os_printf("\nGDO2: %x\n", (uint8) HSPI_transaction(0,0,8,0x00 | CC1101_READ_SINGLE,0,0,8,0));
+    for (i = 0; i < 3; i++) {
+        os_printf("\nGDO%u: %x", 2-i, buf[i]);
+    }
+    */
 
     CC1101_set_channel(1);
     CC1101_set_id(1);
-    /*
-    if (!CC1101_set_channel(1)) {
-        os_printf("Error setting channel");
-    }
-    if (!CC1101_set_id(1)) {
-        os_printf("Error setting ID");
-    }
-    */
 }
 
 void TASK_init_user()
@@ -95,6 +83,7 @@ void TASK_init_user()
 void TIMER_init_user()
 {
     TIMER_task_i2c_init();
+    // TIMER_task_spi_init();
 }
 
 void HTTPD_init_user()

@@ -20,10 +20,10 @@
 // channel      Funkkanal
 // conf[39]     Konfigurationstabelle
 //=============================================================================
-extern unsigned char ID;            //Node ID von 1...255
-extern unsigned char channel;       //Funkkanal von 1..10
-extern char conf[39];               //Konfigurationstabelle
-extern unsigned char paTableIndex;  //PA Tabelle
+extern uint8_t ID;            //Node ID von 1...255
+extern uint8_t channel;       //Funkkanal von 1..10
+extern uint8_t conf[39];               //Konfigurationstabelle
+extern uint8_t paTableIndex;  //PA Tabelle
 
 
 #define MAX_UID                   0xFF  // Maximum UID of a node is 255
@@ -194,14 +194,14 @@ extern unsigned char paTableIndex;  //PA Tabelle
 //=============================================================================
 typedef struct RCC1101
     {
-    unsigned char length;   // Längenbyte muß <= 62 sein
-    unsigned char dest;     // Zieladresse des empfangenen Packetes
-    unsigned char source;   // Quelladresse des empfangenen Packetes
-    char data[CC1101_MAX_DATA_LENGTH]; // RxCC1101.data[0] Zieladresse
+    uint8_t length;   // Längenbyte muß <= 62 sein
+    uint8_t dest;     // Zieladresse des empfangenen Packetes
+    uint8_t source;   // Quelladresse des empfangenen Packetes
+    uint8_t data[CC1101_MAX_DATA_LENGTH]; // RxCC1101.data[0] Zieladresse
                             // RxCC1101.data[1] Quelladresse
                             // RxCC1101.data[2..59] Daten
-    unsigned char RSSI;     // The RSSI value of last received packet
-    unsigned char CRC_RX;   // The CRC status of last received packet (1 = OK, 0 = not OK)
+    uint8_t RSSI;     // The RSSI value of last received packet
+    uint8_t CRC_RX;   // The CRC status of last received packet (1 = OK, 0 = not OK)
     }
     CC1101_Rx;
 extern volatile  CC1101_Rx RxCC1101;
@@ -213,76 +213,73 @@ extern volatile  CC1101_Rx RxCC1101;
 //=============================================================================
 typedef struct TCC1101
     {
-    unsigned char length;   // Länge Daten  (max 59)
-    unsigned char dest;     // Zieladresse  (0..255)
-    unsigned char source;   // Quelladresse (0..255)
-    char data[CC1101_MAX_DATA_LENGTH]; // Daten        (max 60)
+    uint8_t length;   // Länge Daten  (max 59)
+    uint8_t dest;     // Zieladresse  (0..255)
+    uint8_t source;   // Quelladresse (0..255)
+    uint8_t data[CC1101_MAX_DATA_LENGTH]; // Daten        (max 60)
     }
     CC1101_Tx;
 extern volatile  CC1101_Tx TxCC1101;    //
 //=============================================================================
 
 
-//=============================================================================
-void CC1101_spi_init_trx();
-void CC1101_spi_strobe(unsigned char strobe);
-// startet SPI auf dem CC1101
+void CC1101_test();
+
+void CC1101_init();
 
 void CC1101_poweronreset();
 
-//=============================================================================
-void CC1101_init();
-// Initialisierung des CC1101 Transceiver
-
-//=============================================================================
 void CC1101_spi_init();
-// Initialisierung der SPI1 Schnittstelle
 
-//=============================================================================
 void CC1101_init_idle();
-// Initialisierung des CC1101 Transceiver Interrupt verboten IDLE Mode
 
-//=============================================================================
 void CC1101_init_powerdown();
-// Initialisierung des CC1101 Transceiver PowerDown
 
-//=============================================================================
 void CC1101_init_interrupt();
-// Initialisierung des CC1101 Empfangsinterrupts
 
-//=============================================================================
 void CC1101_isr();
-// ISR des CC1101 Empfangsinterrupts
 
-//=============================================================================
 void CC1101_reset();
-// Reset des CC1101 Transceiver
 
-//  Setzt Adresse des CC1101 Transceiver 1...255 möglich
 void CC1101_set_id(
-        uint8 id);
+        uint8_t id);
 
-//  Setzt die Sendeleistung des CC1101 Transceiver
-//  pa_index siehe paTable
-uint8 CC1101_set_power(
-        uint8 pa_index);
+uint8_t CC1101_set_power(
+        uint8_t pa_index);
 
-// Setzt den Sendekanal des CC1101 Transceiver 1...10 möglich
 void CC1101_set_channel(
-        uint8 channel);
+        uint8_t channel);
 
-//=============================================================================
-void send_Packet(unsigned char ziel, unsigned char quelle, char *data, unsigned char length);
-// Sendet ein Funkpaket siehe auch TxCC1101 Puffer
+void CC1101_spi_trx_init();
 
-//=============================================================================
-char receive_Packet(void);
-// Empfängt ein Funkpacket siehe auch RxCC1101 Puffer
+void CC1101_spi_write(
+        uint8_t addr,
+        uint8_t value);
 
-//=============================================================================
-void print_Packet(void);
-// Gibt den Packetinhalt auf die serielle Schnittstelle aus
+void CC1101_spi_write_burst(
+        uint8_t addr,
+        uint8_t *buffer,
+        uint8_t count);
 
-//=============================================================================
+uint8_t CC1101_spi_read(
+        uint8_t addr);
+
+void CC1101_spi_read_burst(
+        uint8_t addr,
+        uint8_t *buffer,
+        uint8_t count);
+
+void CC1101_spi_strobe(
+        uint8_t strobe);
+
+void CC11_send_packet(
+        uint8_t dest,
+        uint8_t source,
+        uint8_t *data,
+        uint8_t length);
+
+uint8_t CC1101_receive_packet();
+
+void CC1101_print_packet();
 
 #endif

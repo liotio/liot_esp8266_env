@@ -1,6 +1,7 @@
 #include "user/timer.h"
 
 static os_timer_t TIMER_task_i2c_timer;
+static os_timer_t TIMER_task_spi_timer;
 
 void TIMER_task_i2c_init()
 {
@@ -17,6 +18,23 @@ void TIMER_task_i2c_stop()
 void TIMER_task_i2c(void *arg)
 {
     TASK_i2c_restart();
+}
+
+void TIMER_task_spi_init()
+{
+    os_timer_setfn(&TIMER_task_spi_timer, (os_timer_func_t *) TIMER_task_spi, NULL);
+    os_timer_arm(&TIMER_task_spi_timer, 10, 1);
+}
+
+void TIMER_task_spi_stop()
+{
+    os_timer_disarm(&TIMER_task_spi_timer);
+}
+
+void TIMER_task_spi(void *arg)
+{
+    CC1101_test();
+    os_printf("\nHSPI write...\n");
 }
 
 /*

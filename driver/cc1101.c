@@ -24,7 +24,7 @@ uint8 channel = 0;
 
 
 //=============================================================================
-// PATABLE sollte überarbeitet werden
+// PATABLE sollte ï¿½berarbeitet werden
 //=============================================================================
 uint8 paTableIndex = PATABLE;   // Current PATABLE Index
 uint8 paTable[] = {
@@ -76,17 +76,17 @@ uint8 FREQ0[] = {0x7A,0x85,0x91,0x9D,0xA9,0xF8,0x03,0x0F,0x1B,0x27,0x33};
 //=============================================================================
 // 400 KBit/s, 869.525 MHz, MSK, Quartz: 26 MHz, Addresse=255
 //=============================================================================
-char conf[] = {
+uint8_t conf[] = {
         0x06, // IOCFG2   GDO2 Signal Konfigurierung Table 34 Packet,CRC,FIFO
         0x2E, // IOCFG1   GDO1 Signal Konfigurierung Table 34 Tristate
         0x0E, // IOCFG0   GDO0 Signal Konfigurierung Table 34 Carrier Sense
         0x0F, // FIFOTHR  Bytes in FIFO
         0x9B, // SYNC1    Sync Word HighByte 0x9B
         0xAD, // SYNC0    Sync Word Low Byte 0xAD
-        0x3F, // PKTLEN   Packetlänge = 63 bei variabler Packetlänge
-        0x06, // PKTCTRL1 2 Status Bytes anfügen; Adresscheck ON Broadcastadresse 0
-        0x45, // PKTCTRL0 variable Packetlänge ON; whitening ON,
-        0xFF, // ADDR     Addresse für Packetfilterung (Knotenadresse)
+        0x3F, // PKTLEN   Packetlï¿½nge = 63 bei variabler Packetlï¿½nge
+        0x06, // PKTCTRL1 2 Status Bytes anfï¿½gen; Adresscheck ON Broadcastadresse 0
+        0x45, // PKTCTRL0 variable Packetlï¿½nge ON; whitening ON,
+        0xFF, // ADDR     Addresse fï¿½r Packetfilterung (Knotenadresse)
         0x00, // CHANNR
         0x0B, // FSCTRL1
         0x00, // FSCTRL0
@@ -96,7 +96,7 @@ char conf[] = {
         0x2D, // MDMCFG4
         0xF8, // MDMCFG3
         0x73, // MDMCFG2  Modulationsformat MSK
-        0x42, // MDMCFG1  8 Präambel Bytes,
+        0x42, // MDMCFG1  8 Prï¿½ambel Bytes,
         0xF8, // MDMCFG0
         0x00, // DEVIATN
         0x07, // MCSM2    (RX_TIME = until end of packet)
@@ -118,87 +118,127 @@ char conf[] = {
         0x1F  // FSCAL0
 };
 
-void CC1101_spi_init_trx()
+void CC1101_test()
 {
-    os_printf("\nCC1101_spi_init_trx");
-    PIN_FUNC_SELECT(HSPI_MISO_MUX, FUNC_GPIO_HSPI_MISO);    // MISO as GPIO
-    HSPI_MISO_GPIO_IN;                                      // MISO as Input from GDO1
-    HSPI_CS_GPIO_LOW;
+    CC1101_spi_write_burst(0x00, conf, sizeof(conf));
+}
 
-    while (HSPI_MISO_GPIO_READ) {                           // Wait until CC1101 is ready
-        os_printf("\nWait for CC1101 to be ready for TX");
+void CC1101_init()
+{
+    CC1101_spi_init();
+    CC1101_poweronreset();
+
+    // write configuration
+    CC1101_spi_write_burst(0x00, conf, sizeof(conf));
+    // set transmission power
+    CC1101_spi_write(CC1101_PATABLE, paTable[paTableIndex]);
+
+    memset((void *) TxCC1101.data, 0, CC1101_MAX_DATA_LENGTH);
+    memset((void *) RxCC1101.data, 0, CC1101_MAX_DATA_LENGTH);
+
+    // init RSSI and CRC in receive buffer
+    RxCC1101.RSSI = 0;
+    RxCC1101.CRC_RX = 0;
+
+    CC1101_init_interrupt();
+
+    // switch to RX mode
+    CC1101_spi_strobe(CC1101_SRX);
+    os_delay_us(120);
+}
+
+void CC1101_spi_init()
+{
+    // init all HSPI pins
+    HSPI_init();
+    // set clock to 80 / 7 / 2 = 5.7 MHz
+    HSPI_set_clock(7, 2);
+
+    // reset CS to GPIO in order to set it manually
+    PIN_FUNC_SELECT(HSPI_CS_MUX, FUNC_GPIO_HSPI_CS);
+    HSPI_CS_GPIO_HIGH;
+}
+
+void CC1101_spi_trx_init()
+{
+    PIN_FUNC_SELECT(HSPI_MISO_MUX, FUNC_GPIO_HSPI_MISO);    // MISO as GPIO
+    HSPI_MISO_GPIO_IN;
+
+    while (HSPI_MISO_GPIO_READ) {                           // Wait until CC1101 is ready                                      // MISO as Input from GDO1
+        HSPI_CS_GPIO_LOW;
     }
 
     PIN_FUNC_SELECT(HSPI_MISO_MUX, FUNC_HSPI);              // MOSI as HSPI port again
 }
 
-void CC1101_spi_write(unsigned char addr, unsigned char value)
+void CC1101_spi_write(
+        uint8_t addr,
+        uint8_t value)
 {
-    CC1101_spi_init_trx();
+    CC1101_spi_trx_init();
     HSPI_transaction(0,0,8,addr,8,value,0,0);
     HSPI_CS_GPIO_HIGH;
 }
 
-unsigned char CC1101_spi_read(unsigned char addr)
+uint8_t CC1101_spi_read(
+        uint8_t addr)
 {
-    unsigned char x;            // Variable Rückgabewert
-    CC1101_spi_init_trx();               // Init SPI CS = 0 warten bis bereit
-
-    // TODO Maybe use HSPI_trx8(...) instead
-    x = HSPI_transaction(0,0,8,addr | CC1101_READ_SINGLE,0,0,8,0);
-    // HSPI_trx8(addr | CC1101_READ_SINGLE); // Kommando schreiben
-    // x = HSPI_rx8();             // Wert lesen
-
+    uint8_t x;
+    CC1101_spi_trx_init();
+    x = HSPI_trx8(addr | CC1101_READ_SINGLE);
     HSPI_CS_GPIO_HIGH;
-
     return x;
 }
 
 // TODO Maybe whole function is not needed
-void CC1101_spi_strobe(unsigned char strobe)
+void CC1101_spi_strobe(
+        uint8_t strobe)
 {
-    CC1101_spi_init_trx();               // Init SPI CS = 0 warten bis bereit
-    HSPI_transaction(0,0,8,strobe,0,0,0,0);
-    // HSPI_tx8(strobe);
-
+    CC1101_spi_trx_init();
+    // HSPI_transaction(0,0,8,strobe,0,0,0,0);
+    HSPI_tx8(strobe);
     HSPI_CS_GPIO_HIGH;
 }
 
-void CC1101_spi_write_burst(unsigned char addr, char *buffer, unsigned char count)
+void CC1101_spi_write_burst(
+        uint8_t addr,
+        uint8_t *buffer,
+        uint8_t count)
 {
-    unsigned char i;
-    CC1101_spi_init_trx();               // Init SPI CS = 0 warten bis bereit
-
+    uint8_t i;
+    CC1101_spi_trx_init();
     HSPI_tx8(addr | CC1101_WRITE_BURST);
 
     for (i = 0; i < count; i++) {
         HSPI_tx8(buffer[i]);
-        // HSPI_transaction(0,0,8,((addr+i) | CC1101_WRITE_SINGLE),8,buffer[i],0,0);
     }
 
     HSPI_CS_GPIO_HIGH;
 }
 
-void CC1101_spi_read_burst(unsigned char addr, char *buffer, unsigned char count)
+void CC1101_spi_read_burst(
+        uint8_t addr,
+        uint8_t *buffer,
+        uint8_t count)
 {
-    unsigned char i;
-    CC1101_spi_init_trx();               // Init SPI CS = 0 warten bis bereit
-
-    // HSPI_tx8(addr | CC1101_READ_BURST);
+    uint8_t i;
+    CC1101_spi_trx_init();
+    HSPI_tx8(addr | CC1101_READ_BURST);
 
     for (i = 0; i < count; i++) {
-        // buffer[i] = HSPI_rx8();
-        buffer[i] = HSPI_transaction(0,0,8,((addr+i) | CC1101_READ_SINGLE),0,0,8,0);
+        buffer[i] = HSPI_rx8();
+        // buffer[i] = HSPI_transaction(0,0,8,((addr+i) | CC1101_READ_SINGLE),0,0,8,0);
     }
 
     HSPI_CS_GPIO_HIGH;
 }
 
 //TODO not needed?
-unsigned char CC1101_spi_read_status(unsigned char addr)
+uint8_t CC1101_spi_read_status(
+        uint8_t addr)
 {
-    unsigned char x;    // Variable
-    CC1101_spi_init_trx();       // Init SPI CS = 0 warten bis bereit
+    uint8_t x;
+    CC1101_spi_trx_init();
     HSPI_tx8(addr | CC1101_READ_BURST);
     x = HSPI_rx8();
 
@@ -209,15 +249,16 @@ unsigned char CC1101_spi_read_status(unsigned char addr)
 
 void CC1101_reset()
 {
-    CC1101_spi_init_trx();               // Init SPI CS = 0 warten bis bereit
+    CC1101_spi_trx_init();
     // HSPI_tx8(CC1101_SRES);       // Strobe Kommando Reset
     HSPI_transaction(0,0,8,CC1101_SRES,0,0,0,0);
-    CC1101_spi_init_trx();               // Init SPI CS = 0 warten bis bereit
 
+    // wait until ready again
+    CC1101_spi_trx_init();
     HSPI_CS_GPIO_HIGH;
 }
 
-void CC1101_powerupreset()
+void CC1101_poweronreset()
 {
     HSPI_CS_GPIO_HIGH;
     os_delay_us(1);
@@ -231,61 +272,6 @@ void CC1101_powerupreset()
     CC1101_reset();
 }
 
-void CC1101_set_channel(uint8 channel)
-{
-    if (channel > 10) {
-        return;
-    }
-
-    CC1101_spi_strobe(CC1101_SIDLE);
-
-    CC1101_spi_write(CC1101_FREQ2, (uint8) FREQ2[channel]);
-    CC1101_spi_write(CC1101_FREQ1, (uint8) FREQ1[channel]);
-    CC1101_spi_write(CC1101_FREQ0, (uint8) FREQ0[channel]);
-
-    CC1101_spi_strobe(CC1101_SRX);
-    CC1101_spi_strobe(CC1101_SCAL);
-}
-
-//=============================================================================
-// Funktion initalisiert CC1101 und setzt CC1101 in den RX Mode
-//=============================================================================
-void CC1101_init()
-{
-    CC1101_spi_init();
-    //unsigned int i_enable = 1;
-    // Power up Reset CC1101
-    CC1101_powerupreset();
-    // Konfigurationsregister schreiben
-    CC1101_spi_write_burst(0x00, conf, sizeof(conf));
-    // aktuelle Sendeleistung des CC1101 setzen
-    CC1101_spi_write(CC1101_PATABLE, paTable[paTableIndex]);
-
-    memset((void *) TxCC1101.data, 0, CC1101_MAX_DATA_LENGTH);
-    memset((void *) RxCC1101.data, 0, CC1101_MAX_DATA_LENGTH);
-    // Initialisieren der RSSI und CRC Werte im RxCC1101 Empfangspuffer
-    RxCC1101.RSSI = 0x00;
-    RxCC1101.CRC_RX = false;
-    // CC1101 GDO2 Interrupt auf PC5 erlauben
-    CC1101_init_interrupt();
-    // in den RX Mode schalten
-    CC1101_spi_strobe(CC1101_SRX);
-    // warten
-    os_delay_us(120); // 120uSek
-}
-
-void CC1101_spi_init()
-{
-    // Init all HSPI Pins
-    HSPI_init();
-    HSPI_set_clock(4, 2);
-
-    // Reset CS to GPIO in order to set it manually
-    SET_PERI_REG_MASK(SPI_PIN(HSPI), SPI_CS0_DIS | SPI_CS1_DIS | SPI_CS2_DIS);
-    PIN_FUNC_SELECT(HSPI_CS_MUX, FUNC_GPIO_HSPI_CS);
-    HSPI_CS_GPIO_HIGH;
-}
-
 void CC1101_init_interrupt()
 {
 }
@@ -293,9 +279,9 @@ void CC1101_init_interrupt()
 void CC1101_init_idle()
 {
     // Power up Reset CC1101
-    powerUpReset();
+    CC1101_poweronreset();
     // Konfigurationsregister schreiben
-    spiWriteBurstReg(0x00, conf, sizeof(conf));
+    CC1101_spi_write_burst(0x00, conf, sizeof(conf));
     // aktuelle Sendeleistung des CC1101 setzen
     CC1101_spi_write(CC1101_PATABLE, paTable[paTableIndex]);
     // Initialisieren der RSSI und CRC Werte im RxCC1101 Empfangspuffer
@@ -313,21 +299,19 @@ void CC1101_init_powerdown()
 
 void CC1101_isr()
 {
-    char crc;
-    crc = receive_Packet();
+    uint8_t crc;
+    uint32_t gpio_status;
+
+    crc = CC1101_receive_packet();
     if (crc) {
 //        EXTI_ClearITPendingBit(EXTI_Line5);
 //        EXTI_ClearFlag(EXTI_Line5);
-        print_Packet();
+        CC1101_print_packet();
     }
 
     CC1101_spi_strobe(CC1101_SIDLE); // Switch to IDLE
     CC1101_spi_strobe(CC1101_SFRX);  // Flush the RX FIFO
     CC1101_spi_strobe(CC1101_SRX);   // Rx Mode
-
-
-
-    uint32 gpio_status;
 
     gpio_status = GPIO_REG_READ(GPIO_STATUS_ADDRESS);
 
@@ -338,7 +322,25 @@ void CC1101_isr()
 //    EXTI_ClearFlag(EXTI_Line5);
 }
 
-void CC1101_set_id(uint8 id)
+void CC1101_set_channel(
+        uint8_t channel)
+{
+    if (channel > 10) {
+        return;
+    }
+
+    CC1101_spi_strobe(CC1101_SIDLE);
+
+    CC1101_spi_write(CC1101_FREQ2, (uint8_t) FREQ2[channel]);
+    CC1101_spi_write(CC1101_FREQ1, (uint8_t) FREQ1[channel]);
+    CC1101_spi_write(CC1101_FREQ0, (uint8_t) FREQ0[channel]);
+
+    CC1101_spi_strobe(CC1101_SRX);
+    CC1101_spi_strobe(CC1101_SCAL);
+}
+
+void CC1101_set_id(
+        uint8_t id)
 {
     if (id > MAX_UID || id < MIN_UID) {
         return;
@@ -350,7 +352,8 @@ void CC1101_set_id(uint8 id)
     os_delay_us(120);
 }
 
-uint8 CC1101_set_power(uint8 pa_index)
+uint8_t CC1101_set_power(
+        uint8_t pa_index)
 {
     if (pa_index < 18) {
         CC1101_spi_strobe(CC1101_SIDLE);    // CC1101 in den IDLE Mode setzen
@@ -364,7 +367,11 @@ uint8 CC1101_set_power(uint8 pa_index)
     return false;
 }
 
-void send_Packet(unsigned char ziel,unsigned char quelle,  char *data, unsigned char length)
+void CC11_send_packet(
+        uint8_t dest,
+        uint8_t source,
+        uint8_t *data,
+        uint8_t length)
 {
     //  -----------------------------
     //  | 0 | 1 | 2 | 3  |....| 62  |  Datenpaket aus 63 Byte
@@ -375,20 +382,20 @@ void send_Packet(unsigned char ziel,unsigned char quelle,  char *data, unsigned 
     //            Q------------------- Quelle
     //                D1........D59--- 59 Datenbytes
 
-    unsigned char i;
+    uint8_t i;
 
-    if (length > CC1101_MAX_DATA_LENGTH-1 ) { // max 59 Byte
-        length = CC1101_MAX_DATA_LENGTH-1 ;   // zu große Packete werden auf 59 Byte begrenzt
+    if (length > CC1101_MAX_DATA_LENGTH-1) { // max 59 Byte
+        length = CC1101_MAX_DATA_LENGTH-1;   // zu groï¿½e Packete werden auf 59 Byte begrenzt
     }
 
-    // Packetlänge = 1 Byte (Zieladdresse) + data length
+    // PacketlÃ¤nge = 1 Byte (Zieladdresse) + data length
     TxCC1101.length = 2 + length;
     // Zieladresse eintragen
-    TxCC1101.dest = ziel;
-    TxCC1101.source = quelle;
+    TxCC1101.dest = dest;
+    TxCC1101.source = source;
 
     // Quelladresse eintragen
-    //Sendepuffer füllen
+    //Sendepuffer fÃ¼llen
     for (i = 0; i < length; i++) {
         TxCC1101.data[i] = data[i];
     }
@@ -405,13 +412,13 @@ void send_Packet(unsigned char ziel,unsigned char quelle,  char *data, unsigned 
     NVIC_Init(&NVIC_InitStructure);
     */
 
-    // setzt CC1101 in den IDLE Mode
+    // set CC1101 to IDLE mode
     CC1101_spi_strobe(CC1101_SIDLE);
-    // löscht den TX FIFO des CC1101
+    // delete TX FIFO of the CC1101
     CC1101_spi_strobe(CC1101_SFTX);
-    // Packet in TX FIFO schreiben +Länge+Ziel+Quelle
-    spiWriteBurstReg(CC1101_TXFIFO, (char *) &TxCC1101, length+3);
-    // setzt CC1101 in den Tx Mode
+    // write packet to TX FIFO + length + destination + quelle
+    CC1101_spi_write_burst(CC1101_TXFIFO, (uint8_t *) &TxCC1101, length+3);
+    // set CC1101 to TX mode
     CC1101_spi_strobe(CC1101_STX);
 
     // warten GDO2=1 - sync transmitted
@@ -431,25 +438,25 @@ void send_Packet(unsigned char ziel,unsigned char quelle,  char *data, unsigned 
     */
 }
 
-char receive_Packet()
+uint8_t CC1101_receive_packet()
 {
-    // für RSSI und CRC Status vorbereiten
-    char status[2];
-    // mit 0 initialisieren um aktuelle Länge zu speichern
-    unsigned char packetLength = 0;
+    // fï¿½r RSSI und CRC Status vorbereiten
+    uint8_t status[2];
+    // mit 0 initialisieren um aktuelle Lï¿½nge zu speichern
+    uint8_t packetLength = 0;
     // Wenn Bytes im RX FIFO vorhanden sind dann...
-    if ((spiReadStatus(CC1101_RXBYTES) & BYTES_IN_RXFIFO)) {
-        // Längenbyte des aktuellen Packetes aus dem RX FIFO lesen (erstes Byte)
-        packetLength = spiReadReg(CC1101_RXFIFO); //Das erste Byte ist LängenByte
+    if ((CC1101_spi_read_status(CC1101_RXBYTES) & BYTES_IN_RXFIFO)) {
+        // Lï¿½ngenbyte des aktuellen Packetes aus dem RX FIFO lesen (erstes Byte)
+        packetLength = CC1101_spi_read(CC1101_RXFIFO); //Das erste Byte ist Lï¿½ngenByte
 
-        // Wenn Packetlänge OK dann...
+        // Wenn Packetlï¿½nge OK dann...
         if (packetLength <= PACKET_LENGTH) {
-            // Längenbyte in den RxCC1101 Puffer schreiben
+            // Lï¿½ngenbyte in den RxCC1101 Puffer schreiben
             RxCC1101.length = packetLength;// packetLength;
-            // Den Rest des Packetes in RxCC1101 mit aktueller Länge schreiben
-            spiReadBurstReg(CC1101_RXFIFO,(char *)RxCC1101.data, packetLength);
+            // Den Rest des Packetes in RxCC1101 mit aktueller Lï¿½nge schreiben
+            CC1101_spi_read_burst(CC1101_RXFIFO,(uint8_t *)RxCC1101.data, packetLength);
             // Lesen der zwei Status Bytes (status[0] = RSSI, status[1] = LQI)
-            spiReadBurstReg(CC1101_RXFIFO, status, 2);
+            CC1101_spi_read_burst(CC1101_RXFIFO, status, 2);
             // RSSI Werte in den RxCC1101 Puffer schreiben
             RxCC1101.RSSI = status[I_RSSI];
             // CRC Wert in den RxCC1101 Puffer schreiben
@@ -458,13 +465,13 @@ char receive_Packet()
             RxCC1101.dest = RxCC1101.data[0];
             // Quelladresse in den RxCC1101 Puffer schreiben
             RxCC1101.source = RxCC1101.data[1];
-            // Rückgabewert CRC true or false
+            // Rï¿½ckgabewert CRC true or false
             return RxCC1101.CRC_RX;
 
         } else {
             // ...CC1101 in den IDLE Mode setzen um...
             CC1101_spi_strobe(CC1101_SIDLE);
-            // ...den RX FIFO zu löschen...
+            // ...den RX FIFO zu lï¿½schen...
             CC1101_spi_strobe(CC1101_SFRX);
         }
     }
@@ -472,24 +479,23 @@ char receive_Packet()
     return false;
 }
 
-void print_Packet()
+void CC1101_print_packet()
 {
-    unsigned int i;
-    char daten[65];
+    uint8_t i;
+    uint8_t data[65];
 
     os_printf("\nQuelladresse= %u", RxCC1101.source);
     os_printf("\nZieladresse = %u", RxCC1101.dest);
     os_printf("\nRSSI = %u", RxCC1101.RSSI);
-    os_printf("\nPaketlänge = %u", RxCC1101.length);
+    os_printf("\nPaketlï¿½nge = %u", RxCC1101.length);
     os_printf("\n");
     os_printf("\nDatenpaket = ");
 
     for (i=0;i<((RxCC1101.length-2));i++) {
-        daten[i] = RxCC1101.data[2+i];
+        data[i] = RxCC1101.data[2+i];
     }
 
-    daten[i] = '0';
+    data[i] = '0';
 
-    os_printf(daten);
-    os_printf("\n");
+    os_printf("%s\n", data);
 }
