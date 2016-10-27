@@ -367,7 +367,7 @@ uint8_t CC1101_set_power(
     return false;
 }
 
-void CC11_send_packet(
+void CC1101_send_packet(
         uint8_t dest,
         uint8_t source,
         uint8_t *data,

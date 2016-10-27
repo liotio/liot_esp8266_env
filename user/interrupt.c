@@ -34,7 +34,7 @@ void INTERRUPT_handler(int * var)
     // if the Interrupt was by GPIO 5
     if (gpio_status & BIT(5)) {
 
-        // see which Inputs from Port Expander have changed since the Interrupt
+        // see which inputs from port expander have changed since the interrupt
         uint16 input_diff = TCA6416A_get_input_diff();
 
         if (input_diff & INTERRUPT_BNO055) {
@@ -52,11 +52,11 @@ void INTERRUPT_handler(int * var)
             // CC1101_isr();
         }
 
-        // disable Interrupt for GPIO 5
+        // disable interrupt for GPIO 5
         gpio_pin_intr_state_set(GPIO_ID_PIN(5), GPIO_PIN_INTR_DISABLE);
-        // clear Interrupt Status for GPIO 5
+        // clear interrupt status for GPIO 5
         GPIO_REG_WRITE(GPIO_STATUS_W1TC_ADDRESS, gpio_status & BIT(5));
-        // Reactivate interrupts for GPIO 5
+        // reactivate interrupts for GPIO 5
         gpio_pin_intr_state_set(GPIO_ID_PIN(5), INTERRUPT_TYPE);
     }
 }

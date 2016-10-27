@@ -272,7 +272,7 @@ void CC1101_spi_read_burst(
 void CC1101_spi_strobe(
         uint8_t strobe);
 
-void CC11_send_packet(
+void CC1101_send_packet(
         uint8_t dest,
         uint8_t source,
         uint8_t *data,
