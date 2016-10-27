@@ -23,7 +23,7 @@ void TIMER_task_i2c(void *arg)
 void TIMER_task_spi_init()
 {
     os_timer_setfn(&TIMER_task_spi_timer, (os_timer_func_t *) TIMER_task_spi, NULL);
-    os_timer_arm(&TIMER_task_spi_timer, 5000, 1);
+    os_timer_arm(&TIMER_task_spi_timer, 1000, 1);
 }
 
 void TIMER_task_spi_stop()
@@ -34,7 +34,8 @@ void TIMER_task_spi_stop()
 void TIMER_task_spi(void *arg)
 {
     uint8_t *data = "Hello World!";
-    CC1101_send_packet(1, 4, data, sizeof(data));
+    CC1101_send_packet(0, 1, data, sizeof(data));
+    CC1101_send_packet(100, 1, data, sizeof(data));
     os_printf("\nSending: %s", data);
 }
 

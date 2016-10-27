@@ -12,7 +12,7 @@
 
 #include "user/task.h"
 
-#define INTERRUPT_TYPE            GPIO_PIN_INTR_ANYEDGE
+#define INTERRUPT_TYPE            GPIO_PIN_INTR_NEGEDGE
 
 #define INTERRUPT_BNO055          TCA6416A_P0_0
 #define INTERRUPT_CC1101_GDO0     TCA6416A_P0_1

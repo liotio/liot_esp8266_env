@@ -43,13 +43,13 @@ void INTERRUPT_handler(int * var)
         }
 
         if (input_diff & INTERRUPT_CC1101_GDO0) {
-            os_printf("\nInterrupt from CC1101 GDO0");
+            // os_printf("\nInterrupt from CC1101 GDO0");
             // CC1101_isr();
         }
 
         if (input_diff & INTERRUPT_CC1101_GDO2) {
-            os_printf("\nInterrupt from CC1101 GDO2");
-            // CC1101_isr();
+            // os_printf("\nInterrupt from CC1101 GDO2");
+            CC1101_isr();
         }
 
         // disable interrupt for GPIO 5

@@ -34,11 +34,11 @@ void TCA6416A_init_user()
 
     if (TCA6416A_initialized()) {
         // turn on green and orange LED (P0.5 and P0.6) and buzzer (P0.4)
-        TCA6416A_set_outputs(TCA6416A_P0_4 | TCA6416A_P0_5 | TCA6416A_P0_6, 0);
+        TCA6416A_set_outputs(TCA6416A_P0_5 | TCA6416A_P0_6, 0);
         // proof that I/O port expander is working
         play_sound(400, 150, 1.0);
         // turn off orange LED (P0.6) and buzzer (P0.4) again
-        TCA6416A_set_outputs(TCA6416A_P0_4 | TCA6416A_P0_6, 1);
+        TCA6416A_set_outputs(TCA6416A_P0_6, 1);
     }
 }
 
@@ -59,7 +59,6 @@ void CC1101_init_user()
     os_printf("\nInit CC1101");
     CC1101_init();
 
-    /*
     uint8_t i;
     uint8_t buf[3];
     CC1101_spi_read_burst(0x00, buf, 3);
@@ -67,10 +66,9 @@ void CC1101_init_user()
     for (i = 0; i < 3; i++) {
         os_printf("\nGDO%u: %x", 2-i, buf[i]);
     }
-    */
 
     CC1101_set_channel(1);
-    CC1101_set_id(system_get_chip_id() % 10);
+    CC1101_set_id(1); // system_get_chip_id() % 10
 }
 
 void TASK_init_user()

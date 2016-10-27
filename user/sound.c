@@ -14,6 +14,8 @@ void play_sound(
 
     num = (time_ms << 11) / tone;
 
+    TCA6416A_set_outputs(TCA6416A_P0_4, 0);
+
     for (i = 0; i < num; i++) {
         if (state) {
             state = 0;
@@ -26,4 +28,6 @@ void play_sound(
         }
         system_soft_wdt_feed();
     }
+
+    TCA6416A_set_outputs(TCA6416A_P0_4, 1);
 }

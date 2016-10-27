@@ -2,6 +2,7 @@
 #define USER_SOUND_H
 
 #include "driver/soft_i2c.h"
+#include "driver/tca6416a.h"
 
 #define TONE_A_HASH     1080 // 454,6 Hz
 #define TONE_X          1100 //  74,4 Hz
