@@ -33,12 +33,12 @@ void TCA6416A_init_user()
     TCA6416A_init(TCA6416A_ADDR);
 
     if (TCA6416A_initialized()) {
-        // turn on green and orange LED (P0.5 and P0.6) and Buzzer (P0.4)
-        TCA6416A_set_outputs(TCA6416A_P0_4 | TCA6416A_P0_5 | TCA6416A_P0_6, 0);
-        // Proof that I/O Port Expander is working
+        // turn on green and orange LED (P0.5 and P0.6) and buzzer (P0.4)
+        TCA6416A_set_outputs(TCA6416A_P0_5 | TCA6416A_P0_6, 0);
+        // proof that I/O port expander is working
         play_sound(400, 150, 1.0);
-        // turn off orange LED (P0.6) and Buzzer (P0.4) again
-        TCA6416A_set_outputs(TCA6416A_P0_4 | TCA6416A_P0_6, 1);
+        // turn off orange LED (P0.6) and buzzer (P0.4) again
+        TCA6416A_set_outputs(TCA6416A_P0_6, 1);
     }
 }
 
@@ -56,30 +56,19 @@ void BNO055_init_user()
 
 void CC1101_init_user()
 {
-    // CC1101_init();
+    os_printf("\nInit CC1101");
+    CC1101_init();
 
-    CC1101_init_spi();
-    powerUpReset();
+    uint8_t i;
+    uint8_t buf[3];
+    CC1101_spi_read_burst(0x00, buf, 3);
 
-    spiInitTrx();
-    HSPI_transaction(0,0,8,0x02 | CC1101_WRITE_SINGLE,8,0x0E,0,0);
-
-    os_delay_us(1000);
-    spiInitTrx();
-    os_printf("GDO0: %x\n", (uint8) HSPI_transaction(0,0,8,0x02 | CC1101_READ_SINGLE,0,0,8,0));
-    spiInitTrx();
-    os_printf("GDO1: %x\n", (uint8) HSPI_transaction(0,0,8,0x01 | CC1101_READ_SINGLE,0,0,8,0));
-    spiInitTrx();
-    os_printf("GDO2: %x\n", (uint8) HSPI_transaction(0,0,8,0x00 | CC1101_READ_SINGLE,0,0,8,0));
-
-    /*
-    if (!CC1101_set_channel(1)) {
-        os_printf("Error setting channel");
+    for (i = 0; i < 3; i++) {
+        os_printf("\nGDO%u: %x", 2-i, buf[i]);
     }
-    if (!CC1101_set_id(1)) {
-        os_printf("Error setting ID");
-    }
-    */
+
+    CC1101_set_channel(1);
+    CC1101_set_id(1); // system_get_chip_id() % 10
 }
 
 void TASK_init_user()
@@ -91,6 +80,7 @@ void TASK_init_user()
 void TIMER_init_user()
 {
     TIMER_task_i2c_init();
+    // TIMER_task_spi_init();
 }
 
 void HTTPD_init_user()

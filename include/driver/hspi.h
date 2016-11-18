@@ -18,6 +18,7 @@
 #include "gpio.h"
 #include "osapi.h"
 
+#include "driver/spi_interface.h"
 #include "driver/spi_register.h"
 
 
@@ -30,10 +31,10 @@
 #define HSPI                      1  // other SPI has number 0
 
 #define FUNC_HSPI                 2  // HSPI is always func 2 on multiplexed GPIO
-#define FUNC_GPIO_HSPI_CLK        FUNC_GPIO9
-#define FUNC_GPIO_HSPI_MISO       FUNC_GPIO10
-#define FUNC_GPIO_HSPI_MOSI       FUNC_GPIO12
-#define FUNC_GPIO_HSPI_CS         FUNC_GPIO13
+#define FUNC_GPIO_HSPI_CLK        FUNC_GPIO14
+#define FUNC_GPIO_HSPI_MISO       FUNC_GPIO12
+#define FUNC_GPIO_HSPI_MOSI       FUNC_GPIO13
+#define FUNC_GPIO_HSPI_CS         FUNC_GPIO15
 
 // define values for different byte orders
 #define HSPI_MSB_FIRST            1
@@ -44,11 +45,14 @@
 #define HSPI_MOSI_PIN             12
 #define HSPI_CS_PIN               13
 
-#define HSPI_MISO_GPIO_IN         GPIO_DIS_OUTPUT(HSPI_MISO_PIN)
-#define HSPI_MISO_GPIO_READ       GPIO_INPUT_GET(HSPI_MISO_PIN)
+#define HSPI_MISO_GPIO            12
+#define HSPI_CS_GPIO              15
 
-#define HSPI_CS_GPIO_LOW          GPIO_OUTPUT_SET(HSPI_CS_PIN, GPIO_LOW)
-#define HSPI_CS_GPIO_HIGH         GPIO_OUTPUT_SET(HSPI_CS_PIN, GPIO_HIGH)
+#define HSPI_MISO_GPIO_IN         GPIO_DIS_OUTPUT(HSPI_MISO_GPIO)
+#define HSPI_MISO_GPIO_READ       GPIO_INPUT_GET(HSPI_MISO_GPIO)
+
+#define HSPI_CS_GPIO_LOW          GPIO_OUTPUT_SET(HSPI_CS_GPIO, GPIO_LOW)
+#define HSPI_CS_GPIO_HIGH         while (READ_PERI_REG (SPI_CMD(1)) & (1<<18)); GPIO_OUTPUT_SET(HSPI_CS_GPIO, GPIO_HIGH)
 
 #define HSPI_CLK_USE_DIV          0
 #define HSPI_CLK_80MHZ_NODIV      1
