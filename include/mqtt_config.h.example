@@ -1,0 +1,21 @@
+#ifndef MQTT_CONFIG_H
+#define MQTT_CONFIG_H
+
+#define MQTT_SSL_ENABLE
+
+#define MQTT_HOST            test.mosquitto.org
+#define MQTT_PORT            1883
+#define MQTT_CLIENT_ID       "CLIENT_ID"
+#define MQTT_USER            "USER"
+#define MQTT_PASS            "PASS"
+#define MQTT_BUF_SIZE        1024
+#define MQTT_CLEAN_SESSION   1
+#define MQTT_KEEPALIVE       120  // seconds
+#define MQTT_RECONN_TIMEOUT  5    // seconds
+
+#define DEFAULT_SECURITY     0
+#define QUEUE_BUFFER_SIZE    2048
+
+#define PROTOCOL_NAMEv31
+
+#endif

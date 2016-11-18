@@ -466,7 +466,7 @@ void ICACHE_FLASH_ATTR mqtt_timer(void *arg)
 
   } else if (client->connState == TCP_RECONNECT_REQ) {
     client->reconnectTick ++;
-    if (client->reconnectTick > MQTT_RECONNECT_TIMEOUT) {
+    if (client->reconnectTick > MQTT_RECONN_TIMEOUT) {
       client->reconnectTick = 0;
       client->connState = TCP_RECONNECT;
       system_os_post(MQTT_TASK_PRIO, 0, (os_param_t)client);
