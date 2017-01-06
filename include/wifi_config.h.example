@@ -1,2 +1,7 @@
+#ifndef WIFI_CONFIG
+#define WIFI_CONFIG
+
 #define AP_SSID "LIOT_ESP8266_ENV"
 #define AP_PASS "liotwifi"
+
+#endif

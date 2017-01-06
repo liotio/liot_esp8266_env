@@ -11,25 +11,34 @@
 #include "driver/tca6416a.h"
 #include "driver/cc1101.h"
 
+#include "lib/wifi.h"
+
+#include "user/mqtt.h"
 #include "user/sound.h"
 #include "user/task.h"
 
-void SOFTAP_init_user();
+void ICACHE_FLASH_ATTR MQTT_init_user();
 
-void I2C_init_user();
+void ICACHE_FLASH_ATTR WIFI_init_user();
 
-void TCA6416A_init_user();
+void ICACHE_FLASH_ATTR WIFI_STATION_init_user();
 
-void BME280_init_user();
+void ICACHE_FLASH_ATTR WIFI_SOFTAP_init_user();
 
-void BNO055_init_user();
+void ICACHE_FLASH_ATTR I2C_init_user();
 
-void CC1101_init_user();
+void ICACHE_FLASH_ATTR TCA6416A_init_user();
 
-void HTTPD_init_user();
+void ICACHE_FLASH_ATTR BME280_init_user();
 
-void TASK_init_user();
+void ICACHE_FLASH_ATTR BNO055_init_user();
 
-void TIMER_init_user();
+void ICACHE_FLASH_ATTR CC1101_init_user();
+
+void ICACHE_FLASH_ATTR HTTPD_init_user();
+
+void ICACHE_FLASH_ATTR TASK_init_user();
+
+void ICACHE_FLASH_ATTR TIMER_init_user();
 
 #endif

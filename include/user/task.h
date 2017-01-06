@@ -9,11 +9,11 @@
 #define TASK_i2c_prio             0
 #define TASK_i2c_queue_len        1
 
-void TASK_i2c(
+void ICACHE_FLASH_ATTR TASK_i2c(
         os_event_t *events);
 
-void TASK_i2c_init();
+void ICACHE_FLASH_ATTR TASK_i2c_init();
 
-void TASK_i2c_restart();
+void ICACHE_FLASH_ATTR TASK_i2c_restart();
 
 #endif

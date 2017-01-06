@@ -1,6 +1,6 @@
 #include "user/mqtt.h"
 
-void WIFI_connect_cb(
+void ICACHE_FLASH_ATTR WIFI_connect_cb(
         uint8_t status)
  {
     if (status == STATION_GOT_IP) {
@@ -12,7 +12,7 @@ void WIFI_connect_cb(
     }
 }
 
-void MQTT_init()
+void ICACHE_FLASH_ATTR MQTT_init()
 {
     MQTT_InitConnection(&mqttClient, MQTT_HOST, MQTT_PORT, DEFAULT_SECURITY);
 
@@ -25,13 +25,23 @@ void MQTT_init()
     MQTT_OnData(&mqttClient, MQTT_data_cb);
 }
 
-static void MQTT_connected_cb(
+void ICACHE_FLASH_ATTR MQTT_publish(
+        const char* topic,
+        const char* data,
+        int data_length,
+        int qos,
+        int retain)
+{
+    MQTT_Publish(&mqttClient, topic, data, data_length, qos, retain);
+}
+
+static ICACHE_FLASH_ATTR void MQTT_connected_cb(
         uint32_t *args)
 {
     MQTT_Client* client = (MQTT_Client*) args;
-    os_printf("MQTT: Connected\n");
+    os_printf("\nMQTT: Connected");
 
-    MQTT_Subscribe(client, "led", 0);
+    // MQTT_Subscribe(client, "led", 0);
 
     // MQTT_Subscribe(client, "mqtt/topic/1", 1);
     // MQTT_Subscribe(client, "mqtt/topic/2", 2);
@@ -41,21 +51,21 @@ static void MQTT_connected_cb(
     // MQTT_Publish(client, "mqtt/topic/2", "hello2", 6, 2, 0);
 }
 
-static void MQTT_disconnected_cb(
+static ICACHE_FLASH_ATTR void MQTT_disconnected_cb(
         uint32_t *args)
 {
     MQTT_Client* client = (MQTT_Client*) args;
-    os_printf("MQTT: Disconnected\n");
+    os_printf("\nMQTT: Disconnected");
 }
 
-static void MQTT_published_cb(
+static ICACHE_FLASH_ATTR void MQTT_published_cb(
         uint32_t *args)
 {
     MQTT_Client* client = (MQTT_Client*) args;
-    os_printf("MQTT: Published\n");
+    os_printf("\nMQTT: Published");
 }
 
-static void MQTT_data_cb(
+static ICACHE_FLASH_ATTR void MQTT_data_cb(
         uint32_t *args,
         const char* topic,
         uint32_t topic_len,
@@ -70,7 +80,7 @@ static void MQTT_data_cb(
     topicBuf[topic_len] = 0;
     os_memcpy(dataBuf, data, data_len);
     dataBuf[data_len] = 0;
-    os_printf("Receive topic: %s, data: %s\n", topicBuf, dataBuf);
+    os_printf("\nReceive topic: %s, data: %s\n", topicBuf, dataBuf);
 
     if (strcmp(topicBuf, "led") == 0) {
 
@@ -93,7 +103,7 @@ static void MQTT_data_cb(
         os_memcpy(&leds[6], grb, sizeof(grb));
         os_memcpy(&leds[9], grb, sizeof(grb));
 
-        WS2812_write(leds, sizeof(leds));
+        // WS2812_write(leds, sizeof(leds));
     }
 
     os_free(topicBuf);

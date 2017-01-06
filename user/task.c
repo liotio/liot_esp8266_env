@@ -2,7 +2,7 @@
 
 static os_event_t TASK_i2c_queue[TASK_i2c_queue_len];
 
-void TASK_i2c(os_event_t *events)
+void ICACHE_FLASH_ATTR TASK_i2c(os_event_t *events)
 {
     if (BNO055_initialized()) {
         os_printf("\n\nBNO055");
@@ -46,33 +46,54 @@ void TASK_i2c(os_event_t *events)
         os_printf("\n\nBME280");
 
         sint32 temp = BME280_get_temperature_int32();
-        sint32 temp_pre = temp / 100;
+        sint16 temp_pre = temp / 100;
         if (temp < 0) temp *= -1;
-        sint32 temp_post = temp % 100;
+        uint16 temp_post = temp % 100;
+
+        while (temp_post > 10) {
+            temp_post /= 10;
+        }
 
         os_printf("\nTEMP:  %d.%u degC", temp_pre, temp_post);
 
         uint32 hum = BME280_get_humidity_int32();
-        uint32 hum_pre = hum / 1024;
-        uint32 hum_post = hum % 1024;
+        uint16 hum_pre = hum / 1024;
+        uint16 hum_post = hum % 1024;
+
+        while (hum_post > 10) {
+            hum_post /= 10;
+        }
 
         os_printf("\nHUM:   %u.%u pctRH", hum_pre, hum_post);
 
         uint32 press = BME280_get_pressure_int64() / 256;
-        uint32 press_pre = press / 100;
-        uint32 press_post = press % 100;
+        uint16 press_pre = press / 100;
+        uint16 press_post = press % 100;
+
+        while (press_post > 10) {
+            press_post /= 10;
+        }
 
         os_printf("\nPRESS: %u.%u hPa", press_pre, press_post);
+
+        char topic[32];
+        char payload[96];
+
+        os_sprintf(topic, "liot_esp8266_env/%u/environment", system_get_chip_id() % 10);
+        os_sprintf(payload, "{ \"temperature\": %d.%u, \"humidity\": %u.%u, \"pressure\": %u.%u }",
+                temp_pre, temp_post, hum_pre, hum_post, press_pre, press_post);
+
+        MQTT_publish(topic, payload, strlen(payload), 0, 0);
     }
 }
 
-void TASK_i2c_init()
+void ICACHE_FLASH_ATTR TASK_i2c_init()
 {
     system_os_task(TASK_i2c, TASK_i2c_prio, TASK_i2c_queue, TASK_i2c_queue_len);
     TASK_i2c_restart();
 }
 
-void TASK_i2c_restart()
+void ICACHE_FLASH_ATTR TASK_i2c_restart()
 {
     system_os_post(TASK_i2c_prio, 0, 0);
 }

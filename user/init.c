@@ -1,6 +1,22 @@
 #include "user/init.h"
 
-void SOFTAP_init_user()
+void ICACHE_FLASH_ATTR MQTT_init_user()
+{
+    MQTT_init();
+}
+
+void ICACHE_FLASH_ATTR WIFI_init_user()
+{
+    WIFI_STATION_init_user();
+    WIFI_SOFTAP_init_user();
+}
+
+void ICACHE_FLASH_ATTR WIFI_STATION_init_user()
+{
+    WIFI_connect(WIFI_connect_cb);
+}
+
+void ICACHE_FLASH_ATTR WIFI_SOFTAP_init_user()
 {
     char buffer[64];
     struct softap_config config;
@@ -18,7 +34,7 @@ void SOFTAP_init_user()
     wifi_softap_set_config(&config);
 }
 
-void I2C_init_user()
+void ICACHE_FLASH_ATTR I2C_init_user()
 {
     // set I2C pins as Open Collector
     I2C_init();
@@ -27,7 +43,7 @@ void I2C_init_user()
     os_delay_us(100);
 }
 
-void TCA6416A_init_user()
+void ICACHE_FLASH_ATTR TCA6416A_init_user()
 {
     os_printf("\nInit TCA6416A");
     TCA6416A_init(TCA6416A_ADDR);
@@ -42,19 +58,19 @@ void TCA6416A_init_user()
     }
 }
 
-void BME280_init_user()
+void ICACHE_FLASH_ATTR BME280_init_user()
 {
     os_printf("\nInit BME280");
     BME280_init(BME280_ADDR);
 }
 
-void BNO055_init_user()
+void ICACHE_FLASH_ATTR BNO055_init_user()
 {
     os_printf("\nInit BNO055");
     BNO055_init(BNO055_ADDR);
 }
 
-void CC1101_init_user()
+void ICACHE_FLASH_ATTR CC1101_init_user()
 {
     os_printf("\nInit CC1101");
     CC1101_init();
@@ -71,19 +87,19 @@ void CC1101_init_user()
     CC1101_set_id(1); // system_get_chip_id() % 10
 }
 
-void TASK_init_user()
+void ICACHE_FLASH_ATTR TASK_init_user()
 {
     // I2C task
     TASK_i2c_init();
 }
 
-void TIMER_init_user()
+void ICACHE_FLASH_ATTR TIMER_init_user()
 {
     TIMER_task_i2c_init();
     // TIMER_task_spi_init();
 }
 
-void HTTPD_init_user()
+void ICACHE_FLASH_ATTR HTTPD_init_user()
 {
     os_printf("\nInit HTTPD");
     HTTPD_init();

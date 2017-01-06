@@ -33,7 +33,7 @@ void user_start();
 
 void user_init()
 {
-    wifi_set_opmode(SOFTAP_MODE);
+    wifi_set_opmode(STATIONAP_MODE);
     UART_SetBaudrate(UART0, BIT_RATE_115200);
     os_printf("SDK version: %s", system_get_sdk_version());
     system_init_done_cb(user_start);
@@ -41,13 +41,14 @@ void user_init()
 
 void user_start()
 {
-    SOFTAP_init_user();
+    MQTT_init_user();
+    WIFI_init_user();
 
     I2C_init_user();
-    TCA6416A_init_user();
-    // BME280_init_user();
-    BNO055_init_user();
-    CC1101_init_user();
+    // TCA6416A_init_user();
+    BME280_init_user();
+    // BNO055_init_user();
+    // CC1101_init_user();
 
     os_delay_us(2000000);
 

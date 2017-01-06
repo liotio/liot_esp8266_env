@@ -11,3 +11,4 @@ firmware
 local.mk
 
 include/mqtt_config.h
+include/wifi_config.h
