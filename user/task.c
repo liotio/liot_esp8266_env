@@ -26,14 +26,16 @@ void ICACHE_FLASH_ATTR TASK_i2c(os_event_t *events)
                 || (roll < -45 && roll >= -180)
                 || (roll > 45 && roll <= 180)) {
 
+            /*
             os_delay_us(500);
             TCA6416A_set_outputs(TCA6416A_P0_4, 0);
             os_delay_us(500);
 
-            play_sound( 400, 200, 0.1);
+            play_sound(400, 200, 0.1);
 
             os_delay_us(500);
             TCA6416A_set_outputs(TCA6416A_P0_4, 1);
+            */
         }
 
         // if orientation did not changed for 5 minutes,
@@ -79,9 +81,44 @@ void ICACHE_FLASH_ATTR TASK_i2c(os_event_t *events)
         char topic[32];
         char payload[96];
 
-        os_sprintf(topic, "liot_esp8266_env/%u/environment", system_get_chip_id() % 10);
+        os_sprintf(topic, "liot_esp8266_env/%u/environment", DEVICE_ID);
         os_sprintf(payload, "{ \"temperature\": %d.%u, \"humidity\": %u.%u, \"pressure\": %u.%u }",
                 temp_pre, temp_post, hum_pre, hum_post, press_pre, press_post);
+
+        MQTT_publish(topic, payload, strlen(payload), 0, 0);
+    }
+
+    // check battery status
+    {
+        uint16 adc;
+        float adc_volt;
+        uint8 bat_pct;
+        char topic[32];
+        char payload[96];
+
+        os_delay_us(500);
+        TCA6416A_set_outputs(TCA6416A_P0_7, 1);
+        os_delay_us(500);
+
+        adc = system_adc_read();
+        os_printf("\nADC: %u", adc);
+
+        adc_volt = adc / 1024.0;
+
+        if (adc_volt > 0.87) {
+            bat_pct = 100;
+        } else if (adc_volt <  0.74) {
+            bat_pct = 0;
+        } else {
+            bat_pct = ((adc_volt - 0.74) / 0.13) * 100;
+        }
+
+        os_delay_us(500);
+        TCA6416A_set_outputs(TCA6416A_P0_7, 0);
+        os_delay_us(500);
+
+        os_sprintf(topic, "liot_esp8266_env/%u/battery", DEVICE_ID);
+        os_sprintf(payload, "{ \"battery\": %u, \"adc\": %u }", bat_pct, adc);
 
         MQTT_publish(topic, payload, strlen(payload), 0, 0);
     }

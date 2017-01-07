@@ -4,16 +4,16 @@ static struct espconn httpdConn;
 static esp_tcp httpdTcp;
 
 
-void HTTPD_on_connection(
+void ICACHE_FLASH_ATTR HTTPD_on_connection(
         void *arg);
 
-void HTTPD_on_receive(
+void ICACHE_FLASH_ATTR HTTPD_on_receive(
         void *arg,
         char *data,
         unsigned short len);
 
 
-void HTTPD_init()
+void ICACHE_FLASH_ATTR HTTPD_init()
 {
     httpdConn.type = ESPCONN_TCP;
     httpdConn.state = ESPCONN_NONE;
@@ -24,7 +24,7 @@ void HTTPD_init()
     espconn_accept(&httpdConn);
 }
 
-void HTTPD_on_connection(
+void ICACHE_FLASH_ATTR HTTPD_on_connection(
         void *arg)
 {
     struct espconn *conn = arg;
@@ -33,7 +33,7 @@ void HTTPD_on_connection(
     espconn_set_opt(conn, ESPCONN_NODELAY);
 }
 
-void HTTPD_on_receive(
+void ICACHE_FLASH_ATTR HTTPD_on_receive(
         void *arg,
         char *data,
         unsigned short len)

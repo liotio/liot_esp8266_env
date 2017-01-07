@@ -45,10 +45,10 @@ void user_start()
     WIFI_init_user();
 
     I2C_init_user();
-    // TCA6416A_init_user();
+    TCA6416A_init_user();
     BME280_init_user();
-    // BNO055_init_user();
-    // CC1101_init_user();
+    BNO055_init_user();
+    CC1101_init_user();
 
     os_delay_us(2000000);
 

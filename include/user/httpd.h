@@ -7,6 +7,6 @@
 
 #include "user/httplib.h"
 
-void HTTPD_init();
+void ICACHE_FLASH_ATTR HTTPD_init();
 
 #endif

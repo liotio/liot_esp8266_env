@@ -10,7 +10,7 @@
 #define TONE_E          6000 //  82,0 Hz
 #define TONE_TEST       7000
 
-void play_sound(
+void ICACHE_FLASH_ATTR play_sound(
         uint16 tone,
         uint32 time_ms,
         double vol_pct);
