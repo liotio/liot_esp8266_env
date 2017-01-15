@@ -26,7 +26,6 @@ void ICACHE_FLASH_ATTR TASK_i2c(os_event_t *events)
                 || (roll < -45 && roll >= -180)
                 || (roll > 45 && roll <= 180)) {
 
-            /*
             os_delay_us(500);
             TCA6416A_set_outputs(TCA6416A_P0_4, 0);
             os_delay_us(500);
@@ -35,7 +34,6 @@ void ICACHE_FLASH_ATTR TASK_i2c(os_event_t *events)
 
             os_delay_us(500);
             TCA6416A_set_outputs(TCA6416A_P0_4, 1);
-            */
         }
 
         // if orientation did not changed for 5 minutes,
